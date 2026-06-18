@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Market Stock Monitor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --green-dark:   #1a3a2a;
+  --green-mid:    #2d6a4f;
+  --green-light:  #52b788;
+  --green-pale:   #d8f3dc;
+  --accent:       #f4a261;
+  --accent-light: #fde8d4;
+  --gray-50:      #f8fafb;
+  --gray-100:     #f0f4f2;
+  --gray-200:     #dde6e0;
+  --gray-400:     #8ba898;
+  --gray-600:     #4a6358;
+  --gray-800:     #1e3028;
+  --white:        #ffffff;
+  --danger:       #e63946;
+  --warning:      #f9c74f;
+  --info:         #457b9d;
+  --border:       #c8dbd0;
+  --header-h:     58px;
+  --bottom-nav-h: 60px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  font-size: 14px;
+  line-height: 1.5;
+  overscroll-behavior: none;
+}
+
+/* ════════════════════════════════════════
+   HEADER
+════════════════════════════════════════ */
+.site-header {
+  background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+  height: var(--header-h);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 100%;
+  gap: 12px;
+}
+.header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.header-brand .icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: var(--green-light);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.brand-text { min-width: 0; }
+.brand-text h1 { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-text p  { font-size: 10px; opacity: .72; display: none; }
+
+/* Desktop nav (hidden on mobile) */
+.header-nav { display: none; gap: 4px; }
+.nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+  transition: all .15s; white-space: nowrap;
+}
+.nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.5); }
+.nav-btn.active { background: var(--green-light); border-color: var(--green-light); }
+
+/* ════════════════════════════════════════
+   BOTTOM NAV (mobile)
+════════════════════════════════════════ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--bottom-nav-h);
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 200;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+}
+.bnav-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  background: none; border: none;
+  font-family: inherit; font-size: 10px; font-weight: 600;
+  color: var(--gray-400);
+  cursor: pointer;
+  transition: color .15s;
+  padding: 6px 4px;
+  letter-spacing: .2px;
+}
+.bnav-btn .bnav-icon { font-size: 20px; line-height: 1; }
+.bnav-btn.active { color: var(--green-mid); }
+.bnav-btn.active .bnav-icon { transform: scale(1.1); }
+
+/* ════════════════════════════════════════
+   VIEWS / LAYOUT
+════════════════════════════════════════ */
+.view {
+  display: none;
+  padding: 16px 16px calc(var(--bottom-nav-h) + 16px);
+  min-height: calc(100vh - var(--header-h));
+}
+.view.active { display: block; }
+
+/* ════════════════════════════════════════
+   PAGE TITLE ROW
+════════════════════════════════════════ */
+.page-title-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 14px; gap: 10px; flex-wrap: wrap;
+}
+.page-title h2 { font-size: 18px; font-weight: 700; color: var(--green-dark); }
+.page-title p  { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.action-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn {
+  padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; font-family: inherit; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 40px;
+}
+.btn-primary  { background: var(--green-mid);   color: #fff; }
+.btn-primary:active  { background: var(--green-dark); }
+.btn-accent   { background: var(--accent);       color: #fff; }
+.btn-accent:active   { opacity: .85; }
+.btn-outline  { background: transparent; color: var(--green-mid); border: 1.5px solid var(--green-mid); }
+.btn-outline:active  { background: var(--green-pale); }
+.btn-ghost    { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--border); }
+.btn-ghost:active    { background: var(--gray-200); }
+.btn-danger   { background: var(--danger); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; min-height: 34px; }
+.btn-icon { padding: 9px; gap: 0; }
+
+/* ════════════════════════════════════════
+   SESSION INFO BAR
+════════════════════════════════════════ */
+.session-bar {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.session-bar-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--gray-400); margin-bottom: 10px;
+}
+.session-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group label { font-size: 11px; font-weight: 600; color: var(--gray-600); }
+.field-group input {
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 9px 10px; font-family: inherit; font-size: 14px;
+  color: var(--gray-800); background: var(--gray-50);
+  width: 100%; -webkit-appearance: none;
+}
+.field-group input:focus { outline: none; border-color: var(--green-light); background: #fff; }
+.field-market { grid-column: 1 / -1; }
+
+.save-session-btn {
+  width: 100%; margin-top: 12px;
+  padding: 11px; font-size: 14px;
+}
+
+/* ════════════════════════════════════════
+   MOBILE ENTRY CARDS
+════════════════════════════════════════ */
+.entries-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.entries-header-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--gray-600);
+}
+.entry-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.entry-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.entry-card-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--gray-400);
+  background: var(--gray-200);
+  padding: 2px 7px; border-radius: 10px;
+}
+.entry-card-title {
+  font-size: 13px; font-weight: 600; color: var(--green-dark);
+  flex: 1; margin: 0 10px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.entry-card-actions { display: flex; gap: 6px; align-items: center; }
+.del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-400); font-size: 16px; padding: 4px 6px;
+  border-radius: 6px; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.del-btn:active { color: var(--danger); background: #fdecea; }
+.chevron { font-size: 12px; color: var(--gray-400); transition: transform .2s; }
+.entry-card.open .chevron { transform: rotate(180deg); }
+
+.entry-card-body {
+  display: none;
+  padding: 14px;
+}
+.entry-card.open .entry-card-body { display: block; }
+
+.card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card-field { display: flex; flex-direction: column; gap: 4px; }
+.card-field.full { grid-column: 1 / -1; }
+.card-field label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--gray-400);
+}
+.card-field input, .card-field select {
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 9px 10px; font-family: inherit; font-size: 14px;
+  color: var(--gray-800); background: var(--gray-50);
+  width: 100%; -webkit-appearance: none; appearance: none;
+}
+.card-field input:focus, .card-field select:focus {
+  outline: none; border-color: var(--green-light); background: #fffbe6;
+}
+.card-field input[type="number"] {
+  font-family: 'IBM Plex Mono', monospace; text-align: right;
+}
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: '▾'; position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%); pointer-events: none;
+  color: var(--gray-400); font-size: 12px;
+}
+.select-wrap select { padding-right: 30px; }
+
+.add-row-btn {
+  width: 100%; margin-top: 4px;
+  border: 2px dashed var(--border);
+  background: none; border-radius: 12px;
+  padding: 14px; font-family: inherit; font-size: 14px; font-weight: 600;
+  color: var(--green-mid); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.add-row-btn:active { background: var(--green-pale); }
+
+/* ════════════════════════════════════════
+   DESKTOP TABLE (shown on wider screens)
+════════════════════════════════════════ */
+.table-wrap {
+  display: none;
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.07);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+.stock-table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1100px;
+}
+.stock-table thead tr.header-top th {
+  background: var(--green-dark); color: #fff;
+  font-weight: 600; font-size: 11px; text-transform: uppercase;
+  letter-spacing: .6px; padding: 11px 10px; text-align: center;
+  border: 1px solid rgba(255,255,255,.12); white-space: nowrap;
+}
+.stock-table thead tr.header-sub th {
+  background: var(--green-mid); color: #fff;
+  font-weight: 500; font-size: 11px; padding: 7px 10px;
+  text-align: center; border: 1px solid rgba(255,255,255,.15);
+}
+.stock-table tbody tr { border-bottom: 1px solid var(--gray-100); }
+.stock-table tbody tr:nth-child(even) { background: var(--gray-50); }
+.stock-table tbody tr:hover { background: var(--green-pale); }
+.stock-table tbody td { padding: 0; border: 1px solid var(--gray-200); vertical-align: middle; }
+.stock-table tbody td input, .stock-table tbody td select {
+  width: 100%; border: none; background: transparent;
+  padding: 8px 10px; font-family: inherit; font-size: 12.5px;
+  color: var(--gray-800); outline: none; min-width: 60px;
+}
+.stock-table tbody td input:focus, .stock-table tbody td select:focus {
+  background: #fffbe6; box-shadow: inset 0 0 0 2px var(--accent);
+}
+.stock-table tbody td.row-num {
+  text-align: center; font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--gray-400); width: 38px;
+  padding: 8px 6px; background: var(--gray-100);
+}
+.stock-table tbody td.action-cell { width: 40px; text-align: center; padding: 4px; }
+.stock-table tbody td input[type="number"] { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+.stock-table-select {
+  width: 100%; border: none; background: transparent;
+  padding: 8px 10px; font-family: inherit; font-size: 12.5px;
+  color: var(--gray-800); outline: none; cursor: pointer;
+}
+.stock-table-select:focus { background: #fffbe6; }
+
+.table-hint { margin-top: 6px; font-size: 11px; color: var(--gray-400); text-align: right; }
+
+/* ════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════ */
+.period-tabs {
+  display: flex; gap: 0;
+  background: var(--gray-100); border-radius: 10px; padding: 3px;
+  width: 100%; margin-bottom: 14px;
+}
+.period-tab {
+  flex: 1; padding: 9px 8px; border-radius: 8px;
+  border: none; background: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: inherit; color: var(--gray-600);
+  transition: all .13s; text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.period-tab.active { background: var(--white); color: var(--green-mid); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+.filter-bar {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.filter-bar label { font-size: 12px; font-weight: 600; color: var(--gray-600); }
+.filter-bar input, .filter-bar select {
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-family: inherit; font-size: 14px;
+  color: var(--gray-800); background: var(--gray-50);
+  flex: 1; min-width: 120px; -webkit-appearance: none;
+}
+.filter-bar input:focus { outline: none; border-color: var(--green-light); }
+
+/* KPI */
+.kpi-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--white); border-radius: 12px;
+  padding: 14px 14px; border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--green-light);
+}
+.kpi-card.accent::before { background: var(--accent); }
+.kpi-card.info::before   { background: var(--info); }
+.kpi-card.warn::before   { background: var(--warning); }
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); font-weight: 600; margin-bottom: 6px; }
+.kpi-value { font-size: 22px; font-weight: 700; color: var(--green-dark); font-family: 'IBM Plex Mono', monospace; line-height: 1; }
+.kpi-sub   { font-size: 10px; color: var(--gray-400); margin-top: 3px; }
+
+/* Charts */
+.chart-card {
+  background: var(--white); border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  padding: 14px; margin-bottom: 12px;
+}
+.chart-title { font-size: 12px; font-weight: 700; color: var(--green-dark); margin-bottom: 12px; }
+
+/* Report table */
+.report-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--gray-400); margin-bottom: 8px;
+}
+.report-table-wrap {
+  background: var(--white); border-radius: 12px;
+  border: 1px solid var(--border); overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.report-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 560px; }
+.report-table thead th {
+  background: var(--green-dark); color: #fff;
+  padding: 9px 12px; text-align: left; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.report-table tbody td {
+  padding: 8px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle;
+}
+.report-table tbody tr:active { background: var(--green-pale); }
+.report-table tfoot td {
+  padding: 9px 12px; background: var(--gray-100);
+  font-weight: 700; border-top: 2px solid var(--border); font-size: 12px;
+}
+.badge {
+  display: inline-block; padding: 2px 7px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+}
+.badge-green  { background: var(--green-pale); color: var(--green-mid); }
+.badge-orange { background: var(--accent-light); color: #c45e1a; }
+.mono { font-family: 'IBM Plex Mono', monospace; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
+.empty-state span { font-size: 36px; display: block; margin-bottom: 8px; }
+
+/* ════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+════════════════════════════════════════ */
+
+/* Tablet: 600px+ */
+@media (min-width: 600px) {
+  .brand-text p { display: block; }
+  .session-fields { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .field-market { grid-column: 1 / 3; }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .kpi-value { font-size: 26px; }
+  .view { padding: 20px 24px calc(var(--bottom-nav-h) + 20px); }
+}
+
+/* Desktop: 900px+ — switch from cards to table, move nav to header */
+@media (min-width: 900px) {
+  :root { --header-h: 62px; }
+  .header-inner { padding: 0 32px; }
+  .brand-text h1 { font-size: 17px; }
+  .header-nav { display: flex; }
+  .bottom-nav { display: none; }
+  .view { padding: 28px 32px 28px; }
+  .entry-cards-area { display: none !important; }
+  .table-wrap { display: block; }
+  .save-session-btn { width: auto; }
+  .session-fields { grid-template-columns: auto auto auto auto 1fr; align-items: end; }
+  .field-market { grid-column: auto; }
+  .session-bar { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  .session-bar-title { display: none; }
+  .session-fields { flex: 1; }
+  .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+  .kpi-value { font-size: 24px; }
+  .charts-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
+  }
+  .chart-card { margin-bottom: 0; }
+  .chart-card.wide { grid-column: 1 / -1; margin-bottom: 16px; }
+}
+
+@media (min-width: 1200px) {
+  .kpi-value { font-size: 28px; }
+}
+
+/* ════════════════════════════════════════
+   PRINT
+════════════════════════════════════════ */
+@media print {
+  .site-header, .bottom-nav, .action-row, .save-session-btn,
+  .del-btn, .add-row-btn, .nav-btn { display: none !important; }
+  .view { padding: 0 !important; display: block !important; }
+  body { font-size: 10px; }
+  .entry-cards-area { display: none !important; }
+  .table-wrap { display: block !important; }
+  .stock-table { min-width: unset; font-size: 9px; }
+  .kpi-card { box-shadow: none; border: 1px solid #ccc; }
+  .chart-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}
+
+/* Safe area for iPhone notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)); }
+  .view { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 16px); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="icon">🌾</div>
+      <div class="brand-text">
+        <h1>Market Stock Monitor</h1>
+        <p>Public Market Commodity Tracking</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn active" onclick="switchView('entry', this)">📋 Stock Entry</button>
+      <button class="nav-btn" onclick="switchView('dashboard', this)">📊 Dashboard</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ═══ STOCK ENTRY VIEW ═══ -->
+<div id="view-entry" class="view active">
+
+  <div class="page-title-row">
+    <div class="page-title">
+      <h2>Daily Stock Entry</h2>
+      <p>Record commodity inbound &amp; outbound movements</p>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-outline btn-sm" onclick="clearTable()">🗑 Clear</button>
+    </div>
+  </div>
+
+  <!-- Session Bar -->
+  <div class="session-bar">
+    <div class="session-bar-title">Session Info</div>
+    <div class="session-fields">
+      <div class="field-group">
+        <label>📅 Date</label>
+        <input type="date" id="entry-date" />
+      </div>
+      <div class="field-group">
+        <label>🕐 Time</label>
+        <input type="time" id="entry-time" />
+      </div>
+      <div class="field-group field-market">
+        <label>🏪 Market / Location</label>
+        <input type="text" id="entry-market" placeholder="e.g. Agdao Public Market" />
+      </div>
+      <div class="field-group">
+        <label>👤 Encoder</label>
+        <input type="text" id="entry-encoder" placeholder="Name" />
+      </div>
+    </div>
+    <button class="btn btn-accent save-session-btn" onclick="saveSession()">💾 Save Session</button>
+  </div>
+
+  <!-- Mobile: entry cards -->
+  <div class="entry-cards-area" id="entryCards">
+    <div class="entries-header">
+      <span class="entries-header-label" id="mobile-row-count">0 rows</span>
+    </div>
+    <!-- cards injected by JS -->
+    <button class="add-row-btn" onclick="addRow()">＋ Add New Entry</button>
+  </div>
+
+  <!-- Desktop: table -->
+  <div class="table-wrap" id="tableWrap">
+    <table class="stock-table" id="stockTable">
+      <thead>
+        <tr class="header-top">
+          <th rowspan="2" style="width:36px;">#</th>
+          <th rowspan="2">ENTRY TYPE</th>
+          <th rowspan="2">STALL NO.</th>
+          <th rowspan="2">COMMODITY</th>
+          <th colspan="2">UNIT</th>
+          <th rowspan="2">TOTAL STOCK</th>
+          <th rowspan="2">PLACE OF ORIGIN<br><small style="font-weight:400;opacity:.8;">(Barangay)</small></th>
+          <th rowspan="2">DESTINATION<br><small style="font-weight:400;opacity:.8;">(Market &amp; Address)</small></th>
+          <th rowspan="2">WHOLESALE PRICE<br><small style="font-weight:400;opacity:.8;">(PHP/KG)</small></th>
+          <th rowspan="2">REMARKS</th>
+          <th rowspan="2" style="width:38px;"></th>
+        </tr>
+        <tr class="header-sub">
+          <th>QUANTITY</th>
+          <th>SACK / BOX / CRATE<br>TRAY / KG / KARTON</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="table-hint" id="tableHint" style="display:none;">
+    <span id="row-count">0</span> row(s) &nbsp;·&nbsp; Click a cell to edit &nbsp;·&nbsp; <kbd>Tab</kbd> to navigate
+  </div>
+
+</div>
+
+<!-- ═══ DASHBOARD VIEW ═══ -->
+<div id="view-dashboard" class="view">
+
+  <div class="page-title-row">
+    <div class="page-title">
+      <h2>Stock Report</h2>
+      <p>Weekly, monthly &amp; annual analytics</p>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportReportCSV()">⬇ CSV</button>
+    </div>
+  </div>
+
+  <!-- Period Tabs -->
+  <div class="period-tabs">
+    <button class="period-tab active" id="tab-weekly"  onclick="setPeriod('weekly')">Weekly</button>
+    <button class="period-tab"        id="tab-monthly" onclick="setPeriod('monthly')">Monthly</button>
+    <button class="period-tab"        id="tab-annual"  onclick="setPeriod('annual')">Annual</button>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div id="filter-weekly" class="filter-group" style="display:flex;gap:8px;align-items:center;flex:1;">
+      <label>Week of:</label>
+      <input type="date" id="filter-week-start" />
+    </div>
+    <div id="filter-monthly" class="filter-group" style="display:none;gap:8px;align-items:center;flex:1;">
+      <label>Month:</label>
+      <input type="month" id="filter-month" />
+    </div>
+    <div id="filter-annual" class="filter-group" style="display:none;gap:8px;align-items:center;flex:1;">
+      <label>Year:</label>
+      <input type="number" id="filter-year" min="2020" max="2100" style="max-width:100px;" />
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="renderDashboard()">🔄 Refresh</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Entries</div><div class="kpi-value mono" id="kpi-entries">0</div><div class="kpi-sub">records</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Inbound</div><div class="kpi-value mono" id="kpi-inbound">0</div><div class="kpi-sub">total units</div></div>
+    <div class="kpi-card info"><div class="kpi-label">Outbound</div><div class="kpi-value mono" id="kpi-outbound">0</div><div class="kpi-sub">total units</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Net Balance</div><div class="kpi-value mono" id="kpi-balance">0</div><div class="kpi-sub">in − out</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Price</div><div class="kpi-value mono" id="kpi-avgprice">₱0</div><div class="kpi-sub">PHP/KG avg</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Commodities</div><div class="kpi-value mono" id="kpi-commodities">0</div><div class="kpi-sub">unique items</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div id="chartsArea">
+    <div class="chart-card wide" style="margin-bottom:12px;">
+      <div class="chart-title">📈 Daily Stock Trend</div>
+      <canvas id="chart-trend" height="160"></canvas>
+    </div>
+    <div class="charts-grid" id="chartsGrid">
+      <div class="chart-card">
+        <div class="chart-title">📦 Inbound vs Outbound by Commodity</div>
+        <canvas id="chart-inout" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">💰 Avg Wholesale Price (PHP/KG)</div>
+        <canvas id="chart-price" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Table -->
+  <div class="report-section-label">Commodity Summary</div>
+  <div class="report-table-wrap">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Commodity</th><th>Entries</th>
+          <th>Inbound</th><th>Outbound</th><th>Net</th>
+          <th>Avg ₱/KG</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="report-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2">TOTAL</td>
+          <td id="rft-entries">0</td><td id="rft-inbound">0</td>
+          <td id="rft-outbound">0</td><td id="rft-balance">0</td>
+          <td id="rft-avgprice">—</td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div id="report-empty" class="empty-state" style="display:none;">
+      <span>📭</span>No data for this period.<br>Add stock entries first.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BOTTOM NAV (mobile) ═══ -->
+<nav class="bottom-nav">
+  <button class="bnav-btn active" id="bnav-entry" onclick="switchView('entry', this, true)">
+    <span class="bnav-icon">📋</span>Entry
+  </button>
+  <button class="bnav-btn" id="bnav-dashboard" onclick="switchView('dashboard', this, true)">
+    <span class="bnav-icon">📊</span>Dashboard
+  </button>
+</nav>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ─────────────────────────────────────────
+//  DATA STORE
+// ─────────────────────────────────────────
+const STORAGE_KEY = 'mstock_sessions_v2';
+let sessions = [];
+try { sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { sessions = []; }
+
+function saveToStorage() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); } catch(e) {}
+}
+
+// ─────────────────────────────────────────
+//  VIEW SWITCH
+// ─────────────────────────────────────────
+function switchView(v, btn, isMobile) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+
+  // Update correct nav
+  if (isMobile) {
+    document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('bnav-' + v)?.classList.add('active');
+  } else {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn?.classList.add('active');
+  }
+
+  if (v === 'dashboard') setTimeout(renderDashboard, 50);
+  window.scrollTo(0, 0);
+}
+
+// ─────────────────────────────────────────
+//  ROW MANAGEMENT
+// ─────────────────────────────────────────
+const UNIT_OPTIONS = ['Sack','Box','Crate','Tray','Kg','Karton'];
+const MOVEMENT_OPTIONS = [
+  { value: 'inbound',  label: 'Inbound' },
+  { value: 'outbound', label: 'Outbound' }
+];
+let rows = [];
+let rowId = 0;
+
+function emptyRow() {
+  return { id: rowId++, movement:'inbound', stall:'', commodity:'', qty:'', unit:'', stock:'', inbound:'', outbound:'', origin:'', destination:'', price:'', remarks:'' };
+}
+
+function hasQty(v) {
+  return String(v ?? '').trim() !== '';
+}
+
+function makeMovementRow(r = {}, movement = 'inbound', stock = '') {
+  return {
+    id: rowId++,
+    movement,
+    stall: r.stall || '',
+    commodity: r.commodity || '',
+    qty: r.qty || '',
+    unit: r.unit || '',
+    stock: stock || '',
+    inbound: movement === 'inbound' ? (stock || '') : '',
+    outbound: movement === 'outbound' ? (stock || '') : '',
+    origin: r.origin || '',
+    destination: r.destination || '',
+    price: r.price || '',
+    remarks: r.remarks || ''
+  };
+}
+
+function normalizeMovement(movement) {
+  return movement === 'outbound' ? 'outbound' : 'inbound';
+}
+
+function movementLabel(movement) {
+  return movement === 'outbound' ? 'Outbound' : 'Inbound';
+}
+
+function normalizeRowForReport(r = {}) {
+  const movement = normalizeMovement(r.movement || (hasQty(r.outbound) && !hasQty(r.inbound) ? 'outbound' : 'inbound'));
+  const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+  return {
+    ...r,
+    movement,
+    stock,
+    inbound: movement === 'inbound' ? stock : (r.inbound || ''),
+    outbound: movement === 'outbound' ? stock : (r.outbound || '')
+  };
+}
+
+function splitSavedRows(savedRows = []) {
+  rowId = 0;
+  const converted = [];
+  savedRows.forEach(r => {
+    if (!r.movement && hasQty(r.inbound) && hasQty(r.outbound)) {
+      converted.push(makeMovementRow(r, 'inbound', r.inbound));
+      converted.push(makeMovementRow(r, 'outbound', r.outbound));
+    } else {
+      const movement = normalizeMovement(r.movement || (hasQty(r.outbound) && !hasQty(r.inbound) ? 'outbound' : 'inbound'));
+      const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+      converted.push(makeMovementRow(r, movement, stock));
+    }
+  });
+  return converted;
+}
+
+function init() {
+  const now = new Date();
+  document.getElementById('entry-date').value = now.toISOString().slice(0,10);
+  document.getElementById('entry-time').value = now.toTimeString().slice(0,5);
+  document.getElementById('filter-week-start').value = now.toISOString().slice(0,10);
+  document.getElementById('filter-month').value = now.toISOString().slice(0,7);
+  document.getElementById('filter-year').value = now.getFullYear();
+
+  if (sessions.length) {
+    const last = sessions[sessions.length - 1];
+    document.getElementById('entry-date').value    = last.date   || '';
+    document.getElementById('entry-market').value  = last.market || '';
+    document.getElementById('entry-encoder').value = last.encoder|| '';
+    document.getElementById('entry-time').value    = last.time   || '';
+    rows = splitSavedRows(last.rows || []);
+  }
+  while (rows.length < 5) rows.push(emptyRow());
+  renderAll();
+}
+
+function addRow() {
+  rows.push(emptyRow());
+  renderAll();
+  // Scroll new card into view on mobile
+  const cards = document.querySelectorAll('.entry-card');
+  if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function deleteRow(id) {
+  if (rows.length <= 1) { rows = [emptyRow()]; }
+  else { rows = rows.filter(r => r.id !== id); }
+  renderAll();
+}
+
+function clearTable() {
+  if (!confirm('Clear all rows?')) return;
+  rows = []; rowId = 0;
+  for (let i = 0; i < 5; i++) rows.push(emptyRow());
+  renderAll();
+}
+
+// ─────────────────────────────────────────
+//  COLLECT CURRENT FIELD VALUES
+// ─────────────────────────────────────────
+function collectRows() {
+  return rows.map(r => {
+    const row = { id: r.id };
+    ['movement','stall','commodity','qty','unit','stock','origin','destination','price','remarks'].forEach(f => {
+      const elements = [...document.querySelectorAll(`[data-id="${r.id}"][data-field="${f}"]`)];
+      const visibleEl = elements.find(el => el.offsetParent !== null);
+      const el = visibleEl || elements[elements.length - 1];
+      row[f] = el ? el.value : r[f] || '';
+    });
+    row.movement = normalizeMovement(row.movement);
+    row.inbound = row.movement === 'inbound' ? row.stock : '';
+    row.outbound = row.movement === 'outbound' ? row.stock : '';
+    return row;
+  });
+}
+
+function syncRowsFromDOM() { rows = collectRows(); }
+
+// ─────────────────────────────────────────
+//  RENDER — MOBILE CARDS
+// ─────────────────────────────────────────
+function renderMobileCards() {
+  const area  = document.getElementById('entryCards');
+  const addBtn = area.querySelector('.add-row-btn');
+  // Remove existing cards
+  area.querySelectorAll('.entry-card').forEach(c => c.remove());
+
+  rows.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'entry-card open';
+    card.dataset.id = r.id;
+
+    const title = r.commodity || '(empty)';
+    const unitOpts = UNIT_OPTIONS.map(u => `<option value="${u}"${r.unit===u?' selected':''}>${u}</option>`).join('');
+    const movement = normalizeMovement(r.movement);
+    const movementOpts = MOVEMENT_OPTIONS.map(o => `<option value="${o.value}"${movement===o.value?' selected':''}>${o.label}</option>`).join('');
+    const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+
+    card.innerHTML = `
+      <div class="entry-card-header" onclick="toggleCard(${r.id})">
+        <span class="entry-card-num">${i+1}</span>
+        <span class="entry-card-title" id="ctitle-${r.id}">${esc(movementLabel(movement) + ' - ' + title)}</span>
+        <div class="entry-card-actions">
+          <button class="del-btn" onclick="event.stopPropagation();deleteRow(${r.id})" title="Delete">✕</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="entry-card-body">
+        <div class="card-fields">
+          <div class="card-field">
+            <label>Entry Type</label>
+            <div class="select-wrap">
+              <select data-id="${r.id}" data-field="movement" onchange="updateCardTitle(${r.id})">
+                ${movementOpts}
+              </select>
+            </div>
+          </div>
+          <div class="card-field">
+            <label>Stall No.</label>
+            <input type="text" data-id="${r.id}" data-field="stall" value="${esc(r.stall)}" placeholder="e.g. A-01" />
+          </div>
+          <div class="card-field">
+            <label>Commodity</label>
+            <input type="text" data-id="${r.id}" data-field="commodity" value="${esc(r.commodity)}" placeholder="e.g. Rice, Onion…"
+              oninput="updateCardTitle(${r.id})" />
+          </div>
+          <div class="card-field">
+            <label>Quantity</label>
+            <input type="number" data-id="${r.id}" data-field="qty" value="${esc(r.qty)}" placeholder="0" min="0" />
+          </div>
+          <div class="card-field">
+            <label>Unit Type</label>
+            <div class="select-wrap">
+              <select data-id="${r.id}" data-field="unit">
+                <option value="">— Select —</option>
+                ${unitOpts}
+              </select>
+            </div>
+          </div>
+          <div class="card-field">
+            <label>Total Stock</label>
+            <input type="number" data-id="${r.id}" data-field="stock" value="${esc(stock)}" placeholder="0" min="0" />
+          </div>
+          <div class="card-field full">
+            <label>Place of Origin (Barangay)</label>
+            <input type="text" data-id="${r.id}" data-field="origin" value="${esc(r.origin)}" placeholder="Barangay name" />
+          </div>
+          <div class="card-field full">
+            <label>Destination (Market &amp; Address)</label>
+            <input type="text" data-id="${r.id}" data-field="destination" value="${esc(r.destination)}" placeholder="Market name, address" />
+          </div>
+          <div class="card-field">
+            <label>Wholesale Price (PHP/KG)</label>
+            <input type="number" data-id="${r.id}" data-field="price" value="${esc(r.price)}" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="card-field">
+            <label>Remarks</label>
+            <input type="text" data-id="${r.id}" data-field="remarks" value="${esc(r.remarks)}" placeholder="Notes…" />
+          </div>
+        </div>
+      </div>
+    `;
+    area.insertBefore(card, addBtn);
+  });
+
+  document.getElementById('mobile-row-count').textContent = rows.length + ' row' + (rows.length !== 1 ? 's' : '');
+}
+
+function updateCardTitle(id) {
+  const card = document.querySelector(`.entry-card[data-id="${id}"]`);
+  if (!card) return;
+  const movement = normalizeMovement(card.querySelector(`[data-field="movement"]`)?.value);
+  const commodity = card.querySelector(`[data-field="commodity"]`)?.value || '(empty)';
+  const title = document.getElementById('ctitle-' + id);
+  if (title) title.textContent = movementLabel(movement) + ' - ' + commodity;
+}
+
+function toggleCard(id) {
+  const card = document.querySelector(`.entry-card[data-id="${id}"]`);
+  if (card) card.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────
+//  RENDER — DESKTOP TABLE
+// ─────────────────────────────────────────
+function renderDesktopTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  rows.forEach((r, i) => {
+    const unitOpts = UNIT_OPTIONS.map(u => `<option value="${u}"${r.unit===u?' selected':''}>${u}</option>`).join('');
+    const movement = normalizeMovement(r.movement);
+    const movementOpts = MOVEMENT_OPTIONS.map(o => `<option value="${o.value}"${movement===o.value?' selected':''}>${o.label}</option>`).join('');
+    const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-num">${i+1}</td>
+      <td><select class="stock-table-select" data-id="${r.id}" data-field="movement"><option value="">—</option>${movementOpts}</select></td>
+      <td><input type="text"   data-id="${r.id}" data-field="stall"       value="${esc(r.stall)}"       placeholder="A-01" /></td>
+      <td><input type="text"   data-id="${r.id}" data-field="commodity"   value="${esc(r.commodity)}"   placeholder="e.g. Rice" style="min-width:110px;" /></td>
+      <td><input type="number" data-id="${r.id}" data-field="qty"         value="${esc(r.qty)}"         placeholder="0" min="0" /></td>
+      <td><select class="stock-table-select" data-id="${r.id}" data-field="unit"><option value="">—</option>${unitOpts}</select></td>
+      <td><input type="number" data-id="${r.id}" data-field="stock"       value="${esc(stock)}"        placeholder="0" min="0" /></td>
+      <td><input type="text"   data-id="${r.id}" data-field="origin"      value="${esc(r.origin)}"     placeholder="Barangay" style="min-width:100px;" /></td>
+      <td><input type="text"   data-id="${r.id}" data-field="destination" value="${esc(r.destination)}" placeholder="Market, address" style="min-width:130px;" /></td>
+      <td><input type="number" data-id="${r.id}" data-field="price"       value="${esc(r.price)}"      placeholder="0.00" min="0" step="0.01" /></td>
+      <td><input type="text"   data-id="${r.id}" data-field="remarks"     value="${esc(r.remarks)}"    placeholder="Notes…" style="min-width:90px;" /></td>
+      <td class="action-cell"><button class="del-btn" onclick="syncRowsFromDOM();deleteRow(${r.id})" title="Delete">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('row-count').textContent = rows.length;
+
+  // Show table hint on desktop
+  const hint = document.getElementById('tableHint');
+  if (hint) hint.style.display = 'block';
+
+  // Add button row for desktop
+  const addTr = document.createElement('tr');
+  addTr.innerHTML = `<td colspan="12" style="padding:0;">
+    <button onclick="syncRowsFromDOM();addRow()" style="width:100%;padding:10px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--green-mid);display:flex;align-items:center;justify-content:center;gap:6px;">＋ Add Row</button>
+  </td>`;
+  tbody.appendChild(addTr);
+}
+
+function renderAll() {
+  renderMobileCards();
+  renderDesktopTable();
+}
+
+function esc(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ─────────────────────────────────────────
+//  SAVE SESSION
+// ─────────────────────────────────────────
+function saveSession() {
+  syncRowsFromDOM();
+  const session = {
+    date:    document.getElementById('entry-date').value,
+    market:  document.getElementById('entry-market').value,
+    encoder: document.getElementById('entry-encoder').value,
+    time:    document.getElementById('entry-time').value,
+    rows:    collectRows()
+  };
+  const key = session.date + '||' + session.market;
+  const idx = sessions.findIndex(s => s.date+'||'+s.market === key);
+  if (idx >= 0) sessions[idx] = session; else sessions.push(session);
+  saveToStorage();
+
+  const btn = event.currentTarget;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✅ Saved!';
+  btn.style.background = '#2d6a4f';
+  setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
+}
+
+// ─────────────────────────────────────────
+//  CSV EXPORT
+// ─────────────────────────────────────────
+function exportCSV() {
+  syncRowsFromDOM();
+  const r = collectRows();
+  const headers = ['#','Entry Type','Stall No.','Commodity','Quantity','Unit','Total Stock','Place of Origin (Barangay)','Destination','Wholesale Price (PHP/KG)','Remarks'];
+  const lines = [headers.join(',')];
+  r.forEach((row,i) => lines.push([i+1,movementLabel(row.movement),row.stall,row.commodity,row.qty,row.unit,row.stock,row.origin,`"${row.destination}"`,row.price,`"${row.remarks}"`].join(',')));
+  download('stock_entry_' + (document.getElementById('entry-date').value||'export') + '.csv', lines.join('\n'));
+}
+
+function exportReportCSV() {
+  const tbody = document.getElementById('report-tbody');
+  if (!tbody.children.length) { alert('No data to export.'); return; }
+  const headers = ['#','Commodity','Entries','Total Inbound','Total Outbound','Net Balance','Avg Price (PHP/KG)','Status'];
+  const lines = [headers.join(',')];
+  [...tbody.querySelectorAll('tr')].forEach((tr,i) => {
+    const tds = [...tr.querySelectorAll('td')].map(td => `"${td.textContent.trim()}"`);
+    lines.push(tds.join(','));
+  });
+  download('stock_report_' + new Date().toISOString().slice(0,10) + '.csv', lines.join('\n'));
+}
+
+function download(filename, content) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF' + content);
+  a.download = filename;
+  a.click();
+}
+
+// ─────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────
+let currentPeriod = 'weekly';
+let charts = {};
+
+function setPeriod(p) {
+  currentPeriod = p;
+  ['weekly','monthly','annual'].forEach(id => {
+    document.getElementById('tab-'+id).classList.toggle('active', id===p);
+    document.getElementById('filter-'+id).style.display = id===p ? 'flex' : 'none';
+  });
+  renderDashboard();
+}
+
+function getFilteredRows() {
+  let all = [];
+  sessions.forEach(s => {
+    (s.rows||[]).forEach(r => {
+      const row = normalizeRowForReport(r);
+      if (row.commodity || row.inbound || row.outbound || row.stock)
+        all.push({...row, _date: s.date, _market: s.market});
+    });
+  });
+  if (currentPeriod === 'weekly') {
+    const ws = document.getElementById('filter-week-start').value;
+    if (!ws) return all;
+    const start = new Date(ws), end = new Date(ws);
+    end.setDate(end.getDate()+6);
+    return all.filter(r => { const d=new Date(r._date); return d>=start && d<=end; });
+  } else if (currentPeriod === 'monthly') {
+    const m = document.getElementById('filter-month').value;
+    if (!m) return all;
+    return all.filter(r => r._date?.startsWith(m));
+  } else {
+    const y = document.getElementById('filter-year').value;
+    if (!y) return all;
+    return all.filter(r => r._date?.startsWith(y));
+  }
+}
+
+function renderDashboard() {
+  const data = getFilteredRows();
+  const totalIn  = data.reduce((s,r) => s+(+r.inbound ||0),0);
+  const totalOut = data.reduce((s,r) => s+(+r.outbound||0),0);
+  const prices   = data.map(r=>+r.price).filter(p=>p>0);
+  const avgPrice = prices.length ? prices.reduce((a,b)=>a+b,0)/prices.length : 0;
+  const comms    = [...new Set(data.map(r=>r.commodity).filter(Boolean))];
+
+  document.getElementById('kpi-entries').textContent     = data.length;
+  document.getElementById('kpi-inbound').textContent     = totalIn.toLocaleString();
+  document.getElementById('kpi-outbound').textContent    = totalOut.toLocaleString();
+  document.getElementById('kpi-balance').textContent     = (totalIn-totalOut).toLocaleString();
+  document.getElementById('kpi-avgprice').textContent    = '₱'+avgPrice.toFixed(2);
+  document.getElementById('kpi-commodities').textContent = comms.length;
+
+  const byComm = {};
+  data.forEach(r => {
+    const c = r.commodity||'(unknown)';
+    if (!byComm[c]) byComm[c] = {entries:0,inbound:0,outbound:0,prices:[],origins:new Set()};
+    byComm[c].entries++;
+    byComm[c].inbound  += +r.inbound ||0;
+    byComm[c].outbound += +r.outbound||0;
+    if (+r.price) byComm[c].prices.push(+r.price);
+    if (r.origin) byComm[c].origins.add(r.origin);
+  });
+
+  const labels   = Object.keys(byComm);
+  const inArr    = labels.map(c=>byComm[c].inbound);
+  const outArr   = labels.map(c=>byComm[c].outbound);
+  const priceArr = labels.map(c=>byComm[c].prices.length?byComm[c].prices.reduce((a,b)=>a+b,0)/byComm[c].prices.length:0);
+
+  renderBarChart('chart-inout', labels, inArr, outArr);
+  renderPriceChart('chart-price', labels, priceArr);
+  renderTrendChart('chart-trend', data);
+
+  const tbody = document.getElementById('report-tbody');
+  const empty = document.getElementById('report-empty');
+  tbody.innerHTML = '';
+
+  if (!labels.length) {
+    empty.style.display = 'block';
+    ['rft-entries','rft-inbound','rft-outbound','rft-balance'].forEach(id=>document.getElementById(id).textContent='0');
+    document.getElementById('rft-avgprice').textContent='—';
+    return;
+  }
+  empty.style.display = 'none';
+
+  labels.forEach((c,i) => {
+    const d  = byComm[c];
+    const ap = d.prices.length ? (d.prices.reduce((a,b)=>a+b,0)/d.prices.length).toFixed(2) : '—';
+    const net= d.inbound - d.outbound;
+    const status = net>0 ? '<span class="badge badge-green">Surplus</span>'
+                 : net<0 ? '<span class="badge badge-orange">Deficit</span>'
+                 : '<span class="badge" style="background:var(--gray-100);color:var(--gray-600)">Even</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${i+1}</td>
+      <td><strong>${c}</strong></td>
+      <td class="mono">${d.entries}</td>
+      <td class="mono">${d.inbound.toLocaleString()}</td>
+      <td class="mono">${d.outbound.toLocaleString()}</td>
+      <td class="mono" style="color:${net>=0?'var(--green-mid)':'var(--danger)'}">${net.toLocaleString()}</td>
+      <td class="mono">${ap!=='—'?'₱'+ap:'—'}</td>
+      <td>${status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('rft-entries').textContent  = data.length;
+  document.getElementById('rft-inbound').textContent  = totalIn.toLocaleString();
+  document.getElementById('rft-outbound').textContent = totalOut.toLocaleString();
+  document.getElementById('rft-balance').textContent  = (totalIn-totalOut).toLocaleString();
+  document.getElementById('rft-avgprice').textContent = '₱'+avgPrice.toFixed(2);
+}
+
+// ─────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12 } } },
+  scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { font: { size: 10 } } } }
+};
+
+function renderBarChart(id, labels, inArr, outArr) {
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label:'Inbound',  data:inArr,  backgroundColor:'#52b788cc', borderColor:'#2d6a4f', borderWidth:1.5, borderRadius:4 },
+      { label:'Outbound', data:outArr, backgroundColor:'#f4a261cc', borderColor:'#e08c50', borderWidth:1.5, borderRadius:4 }
+    ]},
+    options: { ...chartDefaults, plugins:{ ...chartDefaults.plugins, legend:{ ...chartDefaults.plugins.legend, position:'top' } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10} } } } }
+  });
+}
+
+function renderPriceChart(id, labels, priceArr) {
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Avg Price (₱/KG)', data:priceArr, backgroundColor:'#457b9dcc', borderColor:'#1d3557', borderWidth:1.5, borderRadius:4 }] },
+    options: { ...chartDefaults, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>'₱'+v, font:{size:10} } }, x:{ ticks:{ font:{size:10} } } } }
+  });
+}
+
+function renderTrendChart(id, data) {
+  destroyChart(id);
+  const byDate = {};
+  data.forEach(r => {
+    const d = r._date||'Unknown';
+    if (!byDate[d]) byDate[d] = {in:0,out:0};
+    byDate[d].in  += +r.inbound ||0;
+    byDate[d].out += +r.outbound||0;
+  });
+  const dates = Object.keys(byDate).sort();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: { labels: dates, datasets: [
+      { label:'Inbound',  data:dates.map(d=>byDate[d].in),  borderColor:'#52b788', backgroundColor:'#52b78822', tension:.3, fill:true, pointRadius:3 },
+      { label:'Outbound', data:dates.map(d=>byDate[d].out), borderColor:'#f4a261', backgroundColor:'#f4a26122', tension:.3, fill:true, pointRadius:3 }
+    ]},
+    options: { ...chartDefaults, plugins:{ ...chartDefaults.plugins, legend:{ position:'top', labels:{ font:{family:'Inter',size:11}, boxWidth:12 } } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10}, maxRotation:45 } } } }
+  });
+}
+
+// ─────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
