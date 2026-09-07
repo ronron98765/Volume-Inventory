@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Market Stock Monitor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --green-dark:   #0B2545;   /* navy — was deep green, now Bantay Presyo navy */
+  --green-mid:    #13407a;   /* navy-mid — primary buttons/headers */
+  --green-light:  #1D9E75;   /* teal-mid — accents, focus, positive state */
+  --green-pale:   #E1F5EE;   /* teal-soft — hover/badge backgrounds */
+  --accent:       #BA7517;   /* amber */
+  --accent-light: #FAEEDA;   /* amber-soft */
+  --blue-soft:    #E8F0FA;
+  --blue-softer:  #F0F5FC;
+  --teal:         #0F6E56;
+  --danger:       #A32D2D;
+  --danger-soft:  #FCEBEB;
+  --warning:      #BA7517;
+  --info:         #1a5799;
+  --gray-50:      #F7F8FA;
+  --gray-100:     #ECEEF2;
+  --gray-200:     #D5D8DF;
+  --gray-400:     #8A8F9C;
+  --gray-600:     #4B5263;
+  --gray-800:     #1A1C22;
+  --white:        #ffffff;
+  --border:       #E2E5EC;
+  --header-h:     58px;
+  --bottom-nav-h: 60px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  font-size: 14px;
+  line-height: 1.5;
+  overscroll-behavior: none;
+}
+
+/* ════════════════════════════════════════
+   HEADER
+════════════════════════════════════════ */
+.site-header {
+  background: var(--green-dark);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  border-bottom: 3px solid var(--green-light);
+  box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  height: var(--header-h);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 100%;
+  gap: 12px;
+}
+.header-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo-cluster {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.45);
+  border-radius: 12px;
+  padding: 4px 7px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.14);
+}
+.header-logo {
+  display: block; height: 34px; width: auto; max-width: 72px;
+  object-fit: contain; flex-shrink: 0;
+}
+.header-logo.apoo-logo { height: 35px; }
+.header-logo.cdo-logo  { height: 33px; }
+.logo-divider { width: 1px; height: 28px; background: rgba(26,58,42,.18); }
+.header-brand .icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: var(--green-light);
+  border-radius: 9px;
+  display: none; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.brand-text { min-width: 0; }
+.brand-text h1 { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-text p  { font-size: 10px; opacity: .72; display: none; }
+
+/* Desktop nav (hidden on mobile) */
+.header-nav { display: none; gap: 4px; }
+.nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+  transition: all .15s; white-space: nowrap;
+}
+.nav-btn:hover, .nav-btn.active { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.5); }
+.nav-btn.active { background: var(--green-light); border-color: var(--green-light); }
+
+/* ════════════════════════════════════════
+   BOTTOM NAV (mobile)
+════════════════════════════════════════ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--bottom-nav-h);
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 200;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+}
+.bnav-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  background: none; border: none;
+  font-family: inherit; font-size: 10px; font-weight: 600;
+  color: var(--gray-400);
+  cursor: pointer;
+  transition: color .15s;
+  padding: 6px 4px;
+  letter-spacing: .2px;
+}
+.bnav-btn .bnav-icon { font-size: 20px; line-height: 1; }
+.bnav-btn.active { color: var(--green-mid); }
+.bnav-btn.active .bnav-icon { transform: scale(1.1); }
+
+/* ════════════════════════════════════════
+   VIEWS / LAYOUT
+════════════════════════════════════════ */
+.view {
+  display: none;
+  padding: 16px 16px calc(var(--bottom-nav-h) + 16px);
+  min-height: calc(100vh - var(--header-h));
+}
+.view.active { display: block; }
+
+/* ════════════════════════════════════════
+   PAGE TITLE ROW
+════════════════════════════════════════ */
+.page-title-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 14px; gap: 10px; flex-wrap: wrap;
+}
+.page-title h2 { font-size: 18px; font-weight: 700; color: var(--green-dark); }
+.page-title p  { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.action-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn {
+  padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; font-family: inherit; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 40px;
+}
+.btn-primary  { background: var(--green-mid);   color: #fff; }
+.btn-primary:active  { background: var(--green-dark); }
+.btn-accent   { background: var(--accent);       color: #fff; }
+.btn-accent:active   { opacity: .85; }
+.btn-outline  { background: transparent; color: var(--green-mid); border: 1.5px solid var(--green-mid); }
+.btn-outline:active  { background: var(--green-pale); }
+.btn-ghost    { background: var(--gray-100); color: var(--gray-600); border: 1px solid var(--border); }
+.btn-ghost:active    { background: var(--gray-200); }
+.btn-danger   { background: var(--danger); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; min-height: 34px; }
+.btn-icon { padding: 9px; gap: 0; }
+
+/* ════════════════════════════════════════
+   SESSION INFO BAR
+════════════════════════════════════════ */
+.session-bar {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.session-bar-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--gray-400); margin-bottom: 10px;
+}
+.session-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group label { font-size: 11px; font-weight: 600; color: var(--gray-600); }
+.field-group input {
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 9px 10px; font-family: inherit; font-size: 14px;
+  color: var(--gray-800); background: var(--gray-50);
+  width: 100%; -webkit-appearance: none;
+}
+.field-group input:focus { outline: none; border-color: var(--green-light); background: #fff; }
+.field-market { grid-column: 1 / -1; }
+
+.save-session-btn {
+  width: 100%; margin-top: 12px;
+  padding: 11px; font-size: 14px;
+}
+.bottom-entry-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* ════════════════════════════════════════
+   LOGIN GATE
+════════════════════════════════════════ */
+.login-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--green-dark);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.login-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 32px 28px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0,0,0,.3);
+  text-align: center;
+}
+.login-logos { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 16px; }
+.login-logos img { height: 48px; width: auto; object-fit: contain; }
+.login-card h1 { font-size: 18px; font-weight: 700; color: var(--green-dark); margin-bottom: 4px; }
+.login-card p { font-size: 12px; color: var(--gray-400); margin-bottom: 20px; }
+.login-field { text-align: left; margin-bottom: 14px; }
+.login-field label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--gray-600); display: block; margin-bottom: 5px;
+}
+.login-field input {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--gray-800);
+  background: var(--gray-50);
+}
+.login-field input:focus { outline: none; border-color: var(--green-light); background: #fff; }
+.login-error { color: var(--danger); font-size: 12px; font-weight: 600; margin-top: 12px; }
+
+/* ════════════════════════════════════════
+   ADMIN DASHBOARD
+════════════════════════════════════════ */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.admin-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.admin-card-title { font-size: 13px; font-weight: 700; color: var(--green-dark); margin-bottom: 4px; }
+.admin-note { font-size: 11px; color: var(--gray-400); line-height: 1.45; margin: 4px 0; }
+.admin-form { display: flex; flex-direction: column; gap: 10px; }
+.admin-field label {
+  display: block; font-size: 10px; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--gray-400); margin-bottom: 5px;
+}
+.admin-field input {
+  width: 100%; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--gray-800);
+  background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; outline: none;
+}
+.admin-field input:focus { border-color: var(--green-light); box-shadow: 0 0 0 3px rgba(29,158,117,.12); }
+.admin-list { max-height: 340px; overflow: auto; border-top: 1px solid var(--border); margin-top: 6px; }
+.admin-item-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 2px; border-bottom: 1px solid var(--gray-100);
+}
+.admin-item-name { font-size: 12px; font-weight: 700; color: var(--gray-800); }
+
+/* ════════════════════════════════════════
+   MOBILE ENTRY CARDS
+════════════════════════════════════════ */
+.entries-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.entries-header-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--gray-600);
+}
+.entry-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+.entry-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.entry-card-num {
+  font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums;
+  font-size: 11px; font-weight: 500;
+  color: var(--gray-400);
+  background: var(--gray-200);
+  padding: 2px 7px; border-radius: 10px;
+}
+.entry-card-title {
+  font-size: 13px; font-weight: 600; color: var(--green-dark);
+  flex: 1; margin: 0 10px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.entry-card-actions { display: flex; gap: 6px; align-items: center; }
+.del-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-400); font-size: 16px; padding: 4px 6px;
+  border-radius: 6px; line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.del-btn:active { color: var(--danger); background: var(--danger-soft); }
+.chevron { font-size: 12px; color: var(--gray-400); transition: transform .2s; }
+.entry-card.open .chevron { transform: rotate(180deg); }
+
+.entry-card-body {
+  display: none;
+  padding: 14px;
+}
+.entry-card.open .entry-card-body { display: block; }
+
+.card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.card-field { display: flex; flex-direction: column; gap: 4px; }
+.card-field.full { grid-column: 1 / -1; }
+.card-field label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--gray-400);
+}
+.card-field input, .card-field select {
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 9px 10px; font-family: inherit; font-size: 14px;
+  color: var(--gray-800); background: var(--gray-50);
+  width: 100%; -webkit-appearance: none; appearance: none;
+}
+.card-field input:focus, .card-field select:focus {
+  outline: none; border-color: var(--green-light); background: var(--blue-softer);
+}
+.card-field input[type="number"] {
+  font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; text-align: right;
+}
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: '▾'; position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%); pointer-events: none;
+  color: var(--gray-400); font-size: 12px;
+}
+.select-wrap select { padding-right: 30px; }
+
+.add-row-btn {
+  width: 100%; margin-top: 4px;
+  border: 2px dashed var(--border);
+  background: none; border-radius: 12px;
+  padding: 14px; font-family: inherit; font-size: 14px; font-weight: 600;
+  color: var(--green-mid); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.add-row-btn:active { background: var(--green-pale); }
+
+/* ════════════════════════════════════════
+   DESKTOP TABLE (shown on wider screens)
+════════════════════════════════════════ */
+.table-wrap {
+  display: none;
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.07);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+}
+.stock-table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1100px;
+}
+.stock-table thead tr.header-top th {
+  background: var(--green-dark); color: #fff;
+  font-weight: 600; font-size: 11px; text-transform: uppercase;
+  letter-spacing: .6px; padding: 11px 10px; text-align: center;
+  border: 1px solid rgba(255,255,255,.12); white-space: nowrap;
+}
+.stock-table thead tr.header-sub th {
+  background: var(--green-mid); color: #fff;
+  font-weight: 500; font-size: 11px; padding: 7px 10px;
+  text-align: center; border: 1px solid rgba(255,255,255,.15);
+}
+.stock-table tbody tr { border-bottom: 1px solid var(--gray-100); }
+.stock-table tbody tr:nth-child(even) { background: var(--gray-50); }
+.stock-table tbody tr:hover { background: var(--green-pale); }
+.stock-table tbody td { padding: 0; border: 1px solid var(--gray-200); vertical-align: middle; }
+.stock-table tbody td input, .stock-table tbody td select {
+  width: 100%; border: none; background: transparent;
+  padding: 8px 10px; font-family: inherit; font-size: 12.5px;
+  color: var(--gray-800); outline: none; min-width: 60px;
+}
+.stock-table tbody td input:focus, .stock-table tbody td select:focus {
+  background: var(--blue-softer); box-shadow: inset 0 0 0 2px var(--accent);
+}
+.stock-table tbody td.row-num {
+  text-align: center; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums;
+  font-size: 11px; color: var(--gray-400); width: 38px;
+  padding: 8px 6px; background: var(--gray-100);
+}
+.stock-table tbody td.action-cell { width: 40px; text-align: center; padding: 4px; }
+.stock-table tbody td input[type="number"] { text-align: right; font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; }
+.stock-table-select {
+  width: 100%; border: none; background: transparent;
+  padding: 8px 10px; font-family: inherit; font-size: 12.5px;
+  color: var(--gray-800); outline: none; cursor: pointer;
+}
+.stock-table-select:focus { background: var(--blue-softer); }
+
+.table-hint { margin-top: 6px; font-size: 11px; color: var(--gray-400); text-align: right; }
+
+/* ════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════ */
+.period-tabs {
+  display: flex; gap: 0;
+  background: var(--gray-100); border-radius: 10px; padding: 3px;
+  width: 100%; margin-bottom: 14px;
+}
+.period-tab {
+  flex: 1; padding: 9px 8px; border-radius: 8px;
+  border: none; background: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: inherit; color: var(--gray-600);
+  transition: all .13s; text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.period-tab.active { background: var(--white); color: var(--green-mid); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+.filter-bar {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.filter-bar label { font-size: 12px; font-weight: 600; color: var(--gray-600); }
+.filter-bar input, .filter-bar select {
+  border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-family: inherit; font-size: 14px;
+  color: var(--gray-800); background: var(--gray-50);
+  flex: 1; min-width: 120px; -webkit-appearance: none;
+}
+.filter-bar input:focus { outline: none; border-color: var(--green-light); }
+
+/* KPI */
+.kpi-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 16px;
+}
+.kpi-card {
+  background: var(--white); border-radius: 12px;
+  padding: 14px 14px; border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--green-light);
+}
+.kpi-card.accent::before { background: var(--accent); }
+.kpi-card.info::before   { background: var(--info); }
+.kpi-card.warn::before   { background: var(--warning); }
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); font-weight: 600; margin-bottom: 6px; }
+.kpi-value { font-size: 22px; font-weight: 700; color: var(--green-dark); font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; line-height: 1; }
+.kpi-sub   { font-size: 10px; color: var(--gray-400); margin-top: 3px; }
+
+/* Charts */
+.chart-card {
+  background: var(--white); border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  padding: 14px; margin-bottom: 12px;
+}
+.chart-title { font-size: 12px; font-weight: 700; color: var(--green-dark); margin-bottom: 12px; }
+
+/* Report table */
+.report-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--gray-400); margin-bottom: 8px;
+}
+.report-table-wrap {
+  background: var(--white); border-radius: 12px;
+  border: 1px solid var(--border); overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.report-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 560px; }
+.report-table thead th {
+  background: var(--green-dark); color: #fff;
+  padding: 9px 12px; text-align: left; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.report-table tbody td {
+  padding: 8px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle;
+}
+.report-table tbody tr:active { background: var(--green-pale); }
+.report-table tfoot td {
+  padding: 9px 12px; background: var(--gray-100);
+  font-weight: 700; border-top: 2px solid var(--border); font-size: 12px;
+}
+.badge {
+  display: inline-block; padding: 2px 7px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+}
+.badge-green  { background: var(--green-pale); color: var(--green-mid); }
+.badge-orange { background: var(--accent-light); color: var(--accent); }
+.mono { font-family: 'Inter', sans-serif; font-variant-numeric: tabular-nums; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
+.empty-state span { font-size: 36px; display: block; margin-bottom: 8px; }
+
+/* ════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+════════════════════════════════════════ */
+
+/* Tablet: 600px+ */
+@media (min-width: 600px) {
+  .brand-text p { display: block; }
+  .session-fields { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .field-market { grid-column: 1 / 3; }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .kpi-value { font-size: 26px; }
+  .view { padding: 20px 24px calc(var(--bottom-nav-h) + 20px); }
+}
+
+
+@media (max-width: 420px) {
+  .header-inner { padding: 0 12px; gap: 8px; }
+  .header-brand { gap: 8px; }
+  .logo-cluster { gap: 5px; padding: 3px 5px; border-radius: 10px; }
+  .header-logo.apoo-logo { height: 30px; max-width: 58px; }
+  .header-logo.cdo-logo  { height: 28px; max-width: 58px; }
+  .logo-divider { height: 23px; }
+  .brand-text h1 { font-size: 13px; }
+}
+
+/* Desktop: 900px+ — switch from cards to table, move nav to header */
+@media (min-width: 900px) {
+  :root { --header-h: 62px; }
+  .header-inner { padding: 0 32px; }
+  .brand-text h1 { font-size: 17px; }
+  .header-logo.apoo-logo { height: 40px; max-width: 90px; }
+  .header-logo.cdo-logo  { height: 38px; max-width: 90px; }
+  .logo-divider { height: 32px; }
+  .header-nav { display: flex; }
+  .bottom-nav { display: none; }
+  .view { padding: 28px 32px 28px; }
+  .entry-cards-area { display: none !important; }
+  .table-wrap { display: block; }
+  .save-session-btn { width: auto; }
+  .session-fields { grid-template-columns: auto auto auto auto 1fr; align-items: end; }
+  .field-market { grid-column: auto; }
+  .session-bar { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  .session-bar-title { display: none; }
+  .session-fields { flex: 1; }
+  .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+  .kpi-value { font-size: 24px; }
+  .charts-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;
+  }
+  .chart-card { margin-bottom: 0; }
+  .chart-card.wide { grid-column: 1 / -1; margin-bottom: 16px; }
+}
+
+@media (min-width: 1200px) {
+  .kpi-value { font-size: 28px; }
+}
+
+/* ════════════════════════════════════════
+   PRINT
+════════════════════════════════════════ */
+@media print {
+  .login-screen { display: none !important; }
+  .bottom-nav, .action-row, .save-session-btn,
+  .del-btn, .add-row-btn, .nav-btn { display: none !important; }
+  .site-header {
+    display: block !important; position: static !important; height: auto !important;
+    background: #fff !important; color: #111 !important; box-shadow: none !important;
+    border-bottom: 1px solid #ccc; margin-bottom: 10px;
+  }
+  .header-inner { padding: 8px 0 !important; }
+  .header-nav { display: none !important; }
+  .brand-text h1 { color: #111 !important; }
+  .brand-text p { display: block !important; color: #555 !important; opacity: 1 !important; }
+  .logo-cluster { background: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; }
+  .view { padding: 0 !important; display: block !important; }
+  body { font-size: 10px; }
+  .entry-cards-area { display: none !important; }
+  .table-wrap { display: block !important; }
+  .stock-table { min-width: unset; font-size: 9px; }
+  .kpi-card { box-shadow: none; border: 1px solid #ccc; }
+  .chart-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+}
+
+/* Safe area for iPhone notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)); }
+  .view { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom) + 16px); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN GATE ═══ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logos">
+      <img src="APOO_Office_Logo-removebg-preview.png" alt="APOO Office Logo" onerror="this.style.display='none'">
+      <img src="CDO_FULL_LOGO.png" alt="Cagayan de Oro City Logo" onerror="this.style.display='none'">
+    </div>
+    <h1>Market Stock Monitor</h1>
+    <p>Please sign in to continue</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUsernameInput" placeholder="Enter your name" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPasswordInput').focus()" />
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPasswordInput" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')appLogin()" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="appLogin()">Login</button>
+    <div class="login-error" id="loginError" style="display:none;">Incorrect username or password. Please try again.</div>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL (hidden until login) ═══ -->
+<div id="appShell" style="display:none;">
+
+<!-- ═══ HEADER ═══ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="logo-cluster" aria-label="APOO and Cagayan de Oro official logos">
+        <img class="header-logo apoo-logo" src="APOO_Office_Logo-removebg-preview.png" alt="APOO Office Logo" onerror="this.style.display='none'">
+        <span class="logo-divider" aria-hidden="true"></span>
+        <img class="header-logo cdo-logo" src="CDO_FULL_LOGO.png" alt="Cagayan de Oro City Logo" onerror="this.style.display='none'">
+      </div>
+      <div class="icon" aria-hidden="true">🌾</div>
+      <div class="brand-text">
+        <h1>Market Stock Monitor</h1>
+        <p>Public Market Commodity Tracking</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <button class="nav-btn" data-view="entry" onclick="switchView('entry', this)">📋 Stock Entry</button>
+      <button class="nav-btn active" data-view="dashboard" onclick="switchView('dashboard', this)">📊 Dashboard</button>
+      <button class="nav-btn" data-view="supplydemand" onclick="switchView('supplydemand', this)">⚖️ Supply &amp; Demand</button>
+      <button class="nav-btn" data-view="admin" onclick="switchView('admin', this)">🛠 Admin</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ═══ STOCK ENTRY VIEW ═══ -->
+<div id="view-entry" class="view">
+
+  <div class="page-title-row">
+    <div class="page-title">
+      <h2>Daily Stock Entry</h2>
+      <p>Record commodity inbound &amp; outbound movements</p>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-outline btn-sm" onclick="clearTable()">🗑 Clear</button>
+    </div>
+  </div>
+
+  <!-- Session Bar -->
+  <div class="session-bar">
+    <div class="session-bar-title">Session Info</div>
+    <div class="session-fields">
+      <div class="field-group">
+        <label>📅 Date</label>
+        <input type="date" id="entry-date" />
+      </div>
+      <div class="field-group">
+        <label>🕐 Time</label>
+        <input type="time" id="entry-time" />
+      </div>
+      <div class="field-group field-market">
+        <label>🏪 Market Location Being Monitored</label>
+        <div class="select-wrap">
+          <select id="entry-market"></select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>👤 Encoder <span style="font-weight:400;opacity:.7;">(from login)</span></label>
+        <input type="text" id="entry-encoder" readonly style="background:var(--gray-100);cursor:not-allowed;" />
+      </div>
+      <div class="field-group">
+        <label>🔀 Entry Type</label>
+        <div class="select-wrap">
+          <select id="entry-type"></select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>🏷 Stall No.</label>
+        <input type="text" id="entry-stall" placeholder="e.g. A-01" />
+      </div>
+      <div class="field-group field-market">
+        <label>📍 Place of Origin (Barangay)</label>
+        <input type="text" id="entry-origin" placeholder="Barangay name" />
+      </div>
+      <div class="field-group field-market">
+        <label>🎯 Destination (Market &amp; Address)</label>
+        <input type="text" id="entry-destination" placeholder="Market name, address" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile: entry cards -->
+  <div class="entry-cards-area" id="entryCards">
+    <div class="entries-header">
+      <span class="entries-header-label" id="mobile-row-count">0 rows</span>
+    </div>
+    <!-- cards injected by JS -->
+    <button class="add-row-btn" onclick="addRow()">＋ Add New Entry</button>
+  </div>
+
+  <!-- Desktop: table -->
+  <div class="table-wrap" id="tableWrap">
+    <table class="stock-table" id="stockTable">
+      <thead>
+        <tr class="header-top">
+          <th rowspan="2" style="width:36px;">#</th>
+          <th rowspan="2">COMMODITY</th>
+          <th colspan="2">UNIT</th>
+          <th rowspan="2">TOTAL STOCK</th>
+          <th rowspan="2">WHOLESALE PRICE<br><small style="font-weight:400;opacity:.8;">(PHP/KG)</small></th>
+          <th rowspan="2">REMARKS</th>
+          <th rowspan="2" style="width:38px;"></th>
+        </tr>
+        <tr class="header-sub">
+          <th>QUANTITY</th>
+          <th>SACK / BOX / CRATE<br>TRAY / KG / KARTON</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div class="table-hint" id="tableHint" style="display:none;">
+    <span id="row-count">0</span> row(s) &nbsp;·&nbsp; Click a cell to edit &nbsp;·&nbsp; <kbd>Tab</kbd> to navigate
+  </div>
+  <div class="bottom-entry-actions">
+    <button class="btn btn-accent save-session-btn" onclick="saveSession(event)">💾 Save</button>
+  </div>
+
+</div>
+
+<!-- ═══ DASHBOARD VIEW ═══ -->
+<div id="view-dashboard" class="view active">
+
+  <div class="page-title-row">
+    <div class="page-title">
+      <h2>Stock Report</h2>
+      <p>Weekly, monthly &amp; annual analytics</p>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportReportCSV()">⬇ CSV</button>
+    </div>
+  </div>
+
+  <!-- Period Tabs -->
+  <div class="period-tabs">
+    <button class="period-tab active" id="tab-weekly"  onclick="setPeriod('weekly')">Weekly</button>
+    <button class="period-tab"        id="tab-monthly" onclick="setPeriod('monthly')">Monthly</button>
+    <button class="period-tab"        id="tab-annual"  onclick="setPeriod('annual')">Annual</button>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div id="filter-weekly" class="filter-group" style="display:flex;gap:8px;align-items:center;flex:1;">
+      <label>Week of:</label>
+      <input type="date" id="filter-week-start" />
+    </div>
+    <div id="filter-monthly" class="filter-group" style="display:none;gap:8px;align-items:center;flex:1;">
+      <label>Month:</label>
+      <input type="month" id="filter-month" />
+    </div>
+    <div id="filter-annual" class="filter-group" style="display:none;gap:8px;align-items:center;flex:1;">
+      <label>Year:</label>
+      <input type="number" id="filter-year" min="2020" max="2100" style="max-width:100px;" />
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="renderDashboard()">🔄 Refresh</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Entries</div><div class="kpi-value mono" id="kpi-entries">0</div><div class="kpi-sub">records</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Inbound</div><div class="kpi-value mono" id="kpi-inbound">0</div><div class="kpi-sub">total units</div></div>
+    <div class="kpi-card info"><div class="kpi-label">Outbound</div><div class="kpi-value mono" id="kpi-outbound">0</div><div class="kpi-sub">total units</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Net Balance</div><div class="kpi-value mono" id="kpi-balance">0</div><div class="kpi-sub">in − out</div></div>
+    <div class="kpi-card"><div class="kpi-label">Avg Price</div><div class="kpi-value mono" id="kpi-avgprice">₱0</div><div class="kpi-sub">PHP/KG avg</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Commodities</div><div class="kpi-value mono" id="kpi-commodities">0</div><div class="kpi-sub">unique items</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div id="chartsArea">
+    <div class="chart-card wide" style="margin-bottom:12px;">
+      <div class="chart-title">📈 Daily Stock Trend</div>
+      <canvas id="chart-trend" height="160"></canvas>
+    </div>
+    <div class="charts-grid" id="chartsGrid">
+      <div class="chart-card">
+        <div class="chart-title">📦 Inbound vs Outbound by Commodity</div>
+        <canvas id="chart-inout" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">💰 Avg Wholesale Price (PHP/KG)</div>
+        <canvas id="chart-price" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Table -->
+  <div class="report-section-label">Commodity Summary</div>
+  <div class="report-table-wrap">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Commodity</th><th>Market Location(s)</th><th>Entries</th>
+          <th>Inbound</th><th>Outbound</th><th>Net</th>
+          <th>Avg ₱/KG</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="report-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3">TOTAL</td>
+          <td id="rft-entries">0</td><td id="rft-inbound">0</td>
+          <td id="rft-outbound">0</td><td id="rft-balance">0</td>
+          <td id="rft-avgprice">—</td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div id="report-empty" class="empty-state" style="display:none;">
+      <span>📭</span>No data for this period.<br>Add stock entries first.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SUPPLY & DEMAND DASHBOARD VIEW ═══ -->
+<div id="view-supplydemand" class="view">
+
+  <div class="page-title-row">
+    <div class="page-title">
+      <h2>Supply &amp; Demand Dashboard</h2>
+      <p>Public overview of supply, demand, surplus, and deficit by commodity</p>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportSupplyDemandCSV()">⬇ CSV</button>
+    </div>
+  </div>
+
+  <!-- Period Tabs -->
+  <div class="period-tabs">
+    <button class="period-tab active" id="sd-tab-weekly"  onclick="setSupplyPeriod('weekly')">Weekly</button>
+    <button class="period-tab"        id="sd-tab-monthly" onclick="setSupplyPeriod('monthly')">Monthly</button>
+    <button class="period-tab"        id="sd-tab-annual"  onclick="setSupplyPeriod('annual')">Annual</button>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div id="sd-filter-weekly" class="filter-group" style="display:flex;gap:8px;align-items:center;flex:1;">
+      <label>Week of:</label>
+      <input type="date" id="sd-filter-week-start" />
+    </div>
+    <div id="sd-filter-monthly" class="filter-group" style="display:none;gap:8px;align-items:center;flex:1;">
+      <label>Month:</label>
+      <input type="month" id="sd-filter-month" />
+    </div>
+    <div id="sd-filter-annual" class="filter-group" style="display:none;gap:8px;align-items:center;flex:1;">
+      <label>Year:</label>
+      <input type="number" id="sd-filter-year" min="2020" max="2100" style="max-width:100px;" />
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="renderSupplyDemandDashboard()">🔄 Refresh</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card accent"><div class="kpi-label">Supply</div><div class="kpi-value mono" id="sd-kpi-supply">0</div><div class="kpi-sub">inbound stock</div></div>
+    <div class="kpi-card info"><div class="kpi-label">Demand</div><div class="kpi-value mono" id="sd-kpi-demand">0</div><div class="kpi-sub">outbound stock</div></div>
+    <div class="kpi-card warn"><div class="kpi-label">Supply Gap</div><div class="kpi-value mono" id="sd-kpi-gap">0</div><div class="kpi-sub">supply − demand</div></div>
+    <div class="kpi-card"><div class="kpi-label">Fulfillment</div><div class="kpi-value mono" id="sd-kpi-rate">0%</div><div class="kpi-sub">supply ÷ demand</div></div>
+    <div class="kpi-card accent"><div class="kpi-label">Surplus Items</div><div class="kpi-value mono" id="sd-kpi-surplus">0</div><div class="kpi-sub">commodities</div></div>
+    <div class="kpi-card info"><div class="kpi-label">Deficit Items</div><div class="kpi-value mono" id="sd-kpi-deficit">0</div><div class="kpi-sub">commodities</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div id="supplyDemandChartsArea">
+    <div class="chart-card wide" style="margin-bottom:12px;">
+      <div class="chart-title">📈 Daily Supply &amp; Demand Trend</div>
+      <canvas id="chart-sd-trend" height="160"></canvas>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">📦 Supply vs Demand by Commodity</div>
+        <canvas id="chart-sd-inout" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⚖️ Surplus / Deficit Gap</div>
+        <canvas id="chart-sd-gap" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supply Demand Table -->
+  <div class="report-section-label" style="margin-top:14px;">Supply &amp; Demand Summary</div>
+  <div class="report-table-wrap">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Commodity</th><th>Market Location(s)</th>
+          <th>Supply</th><th>Demand</th><th>Gap</th>
+          <th>Fulfillment</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="sd-report-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3">TOTAL</td>
+          <td id="sd-rft-supply">0</td><td id="sd-rft-demand">0</td>
+          <td id="sd-rft-gap">0</td><td id="sd-rft-rate">0%</td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div id="sd-report-empty" class="empty-state" style="display:none;">
+      <span>📭</span>No supply and demand data for this period.<br>Inbound entries count as supply, while outbound entries count as demand.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN DASHBOARD ═══ -->
+<div id="view-admin" class="view">
+
+  <div class="page-title-row">
+    <div class="page-title">
+      <h2>Admin Dashboard</h2>
+      <p>Manage encoders, market locations &amp; local data</p>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-outline btn-sm" onclick="appLogout()">🚪 Logout</button>
+    </div>
+  </div>
+
+  <div class="admin-grid">
+
+    <div class="admin-card">
+      <div class="admin-card-title">👤 Manage Encoders</div>
+      <p class="admin-note">Add the staff who will log in and encode entries. Once logged in, their name automatically fills the Encoder field — no typing needed.</p>
+      <div class="admin-form" style="margin:12px 0;">
+        <div class="admin-field">
+          <label>Encoder Name</label>
+          <input type="text" id="adminUserName" placeholder="e.g. Juan Dela Cruz" />
+        </div>
+        <div class="admin-field">
+          <label>Password</label>
+          <input type="password" id="adminUserPassword" placeholder="Set a password" autocomplete="new-password" />
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="adminAddUser()">➕ Add Encoder</button>
+      </div>
+      <div class="admin-list" id="adminUserList"></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🏪 Market Locations</div>
+      <p class="admin-note">Markets added here appear in the Stock Entry dropdown.</p>
+      <div class="admin-form" style="flex-direction:row;gap:8px;margin:12px 0;">
+        <input type="text" id="adminMarketName" placeholder="e.g. Bulua Market" style="flex:1;" onkeydown="if(event.key==='Enter')adminAddMarket()" />
+        <button class="btn btn-primary btn-sm" onclick="adminAddMarket()">➕ Add</button>
+      </div>
+      <div class="admin-list" id="adminMarketList"></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🔐 Change My Password</div>
+      <p class="admin-note">Update the password for your own account (<strong id="adminCurrentUserLabel">—</strong>).</p>
+      <div class="admin-form">
+        <div class="admin-field">
+          <label>Current Password</label>
+          <input type="password" id="adminCurrentPassword" placeholder="Current password" autocomplete="current-password" />
+        </div>
+        <div class="admin-field">
+          <label>New Password</label>
+          <input type="password" id="adminNewPassword" placeholder="New password" autocomplete="new-password" />
+        </div>
+        <div class="admin-field">
+          <label>Confirm New Password</label>
+          <input type="password" id="adminConfirmPassword" placeholder="Re-enter new password" autocomplete="new-password" />
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="adminChangeMyPassword()">Update Password</button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">⚠️ Danger Zone</div>
+      <p class="admin-note">Permanently deletes all stock entries saved in this browser. This cannot be undone.</p>
+      <button class="btn btn-danger btn-sm" style="margin-top:10px;" onclick="adminResetData()">🗑 Reset All Local Data</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ BOTTOM NAV (mobile) ═══ -->
+<nav class="bottom-nav">
+  <button class="bnav-btn" id="bnav-entry" onclick="switchView('entry', this, true)">
+    <span class="bnav-icon">📋</span>Entry
+  </button>
+  <button class="bnav-btn active" id="bnav-dashboard" onclick="switchView('dashboard', this, true)">
+    <span class="bnav-icon">📊</span>Stock
+  </button>
+  <button class="bnav-btn" id="bnav-supplydemand" onclick="switchView('supplydemand', this, true)">
+    <span class="bnav-icon">⚖️</span>Supply
+  </button>
+  <button class="bnav-btn" id="bnav-admin" onclick="switchView('admin', this, true)">
+    <span class="bnav-icon">🛠</span>Admin
+  </button>
+</nav>
+
+</div> <!-- /#appShell -->
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ─────────────────────────────────────────
+//  ENCODER ACCOUNTS (admin-managed users)
+// ─────────────────────────────────────────
+const USERS_KEY = 'mstock_users';
+const LEGACY_PASSWORD_KEY = 'mstock_app_password';
+const DEFAULT_APP_PASSWORD = 'apoo2026';
+let USERS = [];
+try { USERS = JSON.parse(localStorage.getItem(USERS_KEY) || 'null'); } catch(e) { USERS = null; }
+if (!Array.isArray(USERS) || !USERS.length) {
+  // Seed a default account (carries over the old single-password setup if present)
+  USERS = [{ name: 'Admin', password: localStorage.getItem(LEGACY_PASSWORD_KEY) || DEFAULT_APP_PASSWORD }];
+}
+
+function saveUsers() {
+  try { localStorage.setItem(USERS_KEY, JSON.stringify(USERS)); } catch(e) {}
+}
+
+// ─────────────────────────────────────────
+//  APP LOGIN GATE
+// ─────────────────────────────────────────
+const APP_AUTH_KEY = 'mstock_app_unlocked';
+const CURRENT_USER_KEY = 'mstock_current_user';
+
+function getCurrentUser() {
+  try { return sessionStorage.getItem(CURRENT_USER_KEY) || ''; } catch(e) { return ''; }
+}
+
+function isAppUnlocked() {
+  try { return sessionStorage.getItem(APP_AUTH_KEY) === '1' && !!getCurrentUser(); } catch(e) { return false; }
+}
+
+function checkAppAuth() {
+  const loginScreen = document.getElementById('loginScreen');
+  const appShell = document.getElementById('appShell');
+  if (isAppUnlocked()) {
+    loginScreen.style.display = 'none';
+    appShell.style.display = 'block';
+    init();
+  } else {
+    loginScreen.style.display = 'flex';
+    appShell.style.display = 'none';
+  }
+}
+
+function appLogin() {
+  const nameInput = document.getElementById('loginUsernameInput');
+  const input = document.getElementById('loginPasswordInput');
+  const err = document.getElementById('loginError');
+  const typedName = (nameInput.value || '').trim();
+  const user = USERS.find(u => u.name.toLowerCase() === typedName.toLowerCase());
+  if (user && input.value === user.password) {
+    try {
+      sessionStorage.setItem(APP_AUTH_KEY, '1');
+      sessionStorage.setItem(CURRENT_USER_KEY, user.name);
+    } catch(e) {}
+    err.style.display = 'none';
+    nameInput.value = '';
+    input.value = '';
+    checkAppAuth();
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+function appLogout() {
+  if (!confirm('Log out of the system?')) return;
+  try {
+    sessionStorage.removeItem(APP_AUTH_KEY);
+    sessionStorage.removeItem(CURRENT_USER_KEY);
+  } catch(e) {}
+  const input = document.getElementById('loginPasswordInput');
+  if (input) input.value = '';
+  checkAppAuth();
+}
+
+function adminAddUser() {
+  const nameInput = document.getElementById('adminUserName');
+  const pwInput = document.getElementById('adminUserPassword');
+  const name = (nameInput.value || '').trim();
+  const password = pwInput.value;
+  if (!name) { alert("Please enter the encoder's name."); return; }
+  if (!password || password.length < 4) { alert('Password must be at least 4 characters.'); return; }
+  if (USERS.some(u => u.name.toLowerCase() === name.toLowerCase())) { alert('An encoder with that name already exists.'); return; }
+  USERS.push({ name, password });
+  saveUsers();
+  nameInput.value = '';
+  pwInput.value = '';
+  renderAdminUsers();
+}
+
+function adminDeleteUser(i) {
+  if (USERS.length <= 1) { alert('At least one encoder account must remain.'); return; }
+  if (!confirm('Remove this encoder account?')) return;
+  const removingSelf = USERS[i].name === getCurrentUser();
+  USERS.splice(i, 1);
+  saveUsers();
+  renderAdminUsers();
+  if (removingSelf) appLogout();
+}
+
+function adminResetUserPassword(i) {
+  const newPw = prompt('Enter a new password for ' + USERS[i].name + ':');
+  if (newPw === null) return;
+  if (newPw.length < 4) { alert('Password must be at least 4 characters.'); return; }
+  USERS[i].password = newPw;
+  saveUsers();
+  alert('Password updated for ' + USERS[i].name + '.');
+}
+
+function adminChangeMyPassword() {
+  const user = USERS.find(u => u.name === getCurrentUser());
+  if (!user) { alert('Could not identify your account.'); return; }
+  const curr = document.getElementById('adminCurrentPassword').value;
+  const next = document.getElementById('adminNewPassword').value;
+  const confirmPwd = document.getElementById('adminConfirmPassword').value;
+  if (curr !== user.password) { alert('Current password is incorrect.'); return; }
+  if (!next || next.length < 4) { alert('New password must be at least 4 characters.'); return; }
+  if (next !== confirmPwd) { alert('New password and confirmation do not match.'); return; }
+  user.password = next;
+  saveUsers();
+  ['adminCurrentPassword','adminNewPassword','adminConfirmPassword'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  alert('Password updated successfully.');
+}
+
+function renderAdminUsers() {
+  const list = document.getElementById('adminUserList');
+  if (!list) return;
+  list.innerHTML = USERS.length
+    ? USERS.map((u, i) => `
+      <div class="admin-item-row">
+        <span class="admin-item-name">${esc(u.name)}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="adminResetUserPassword(${i})">Reset PW</button>
+          <button class="btn btn-danger btn-sm" onclick="adminDeleteUser(${i})">Remove</button>
+        </div>
+      </div>`).join('')
+    : '<div class="admin-note" style="padding:10px 4px;">No encoders yet.</div>';
+}
+
+// ─────────────────────────────────────────
+//  MARKET LOCATIONS (admin-managed)
+// ─────────────────────────────────────────
+const MARKETS_KEY = 'mstock_markets';
+let MARKETS = [];
+try {
+  MARKETS = JSON.parse(localStorage.getItem(MARKETS_KEY) || 'null') || ['Bulua Market', 'Carmen Market', 'Cogon Market'];
+} catch(e) {
+  MARKETS = ['Bulua Market', 'Carmen Market', 'Cogon Market'];
+}
+
+function saveMarkets() {
+  try { localStorage.setItem(MARKETS_KEY, JSON.stringify(MARKETS)); } catch(e) {}
+}
+
+function populateMarketSelect(selected) {
+  const sel = document.getElementById('entry-market');
+  if (!sel) return;
+  const want = selected !== undefined ? selected : sel.value;
+  const opts = MARKETS.slice();
+  if (want && !opts.includes(want)) opts.push(want);
+  sel.innerHTML = '<option value="">— Select market —</option>' + opts.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  sel.value = want || '';
+}
+
+function renderAdminMarkets() {
+  const list = document.getElementById('adminMarketList');
+  if (!list) return;
+  list.innerHTML = MARKETS.length
+    ? MARKETS.map((m, i) => `
+      <div class="admin-item-row">
+        <span class="admin-item-name">${esc(m)}</span>
+        <button class="btn btn-danger btn-sm" onclick="adminDeleteMarket(${i})">Remove</button>
+      </div>`).join('')
+    : '<div class="admin-note" style="padding:10px 4px;">No markets configured yet.</div>';
+}
+
+function adminAddMarket() {
+  const input = document.getElementById('adminMarketName');
+  const name = (input.value || '').trim();
+  if (!name) return;
+  if (MARKETS.some(m => m.toLowerCase() === name.toLowerCase())) { alert('That market already exists.'); return; }
+  MARKETS.push(name);
+  saveMarkets();
+  input.value = '';
+  renderAdminMarkets();
+  populateMarketSelect();
+}
+
+function adminDeleteMarket(i) {
+  if (!confirm('Remove this market?')) return;
+  MARKETS.splice(i, 1);
+  saveMarkets();
+  renderAdminMarkets();
+  populateMarketSelect();
+}
+
+function adminResetData() {
+  if (!confirm('This will permanently delete all saved stock entries from this browser. Continue?')) return;
+  sessions = [];
+  saveToStorage();
+  rows = []; rowId = 0;
+  for (let i = 0; i < 5; i++) rows.push(emptyRow());
+  renderAll();
+  alert('All local stock entry data has been cleared.');
+}
+
+function renderAdmin() {
+  renderAdminMarkets();
+  renderAdminUsers();
+  const label = document.getElementById('adminCurrentUserLabel');
+  if (label) label.textContent = getCurrentUser() || '—';
+}
+
+// ─────────────────────────────────────────
+//  DATA STORE
+// ─────────────────────────────────────────
+const STORAGE_KEY = 'mstock_sessions_v2';
+let sessions = [];
+try { sessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { sessions = []; }
+
+function saveToStorage() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); } catch(e) {}
+}
+
+// ─────────────────────────────────────────
+//  VIEW SWITCH
+// ─────────────────────────────────────────
+function switchView(v, btn, isMobile) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+
+  // Keep desktop and mobile navigation in sync
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-view="${v}"]`)?.classList.add('active');
+  document.getElementById('bnav-' + v)?.classList.add('active');
+  btn?.classList.add('active');
+
+  if (v === 'dashboard') setTimeout(renderDashboard, 50);
+  if (v === 'supplydemand') setTimeout(renderSupplyDemandDashboard, 50);
+  if (v === 'admin') setTimeout(renderAdmin, 50);
+  window.scrollTo(0, 0);
+}
+
+// ─────────────────────────────────────────
+//  ROW MANAGEMENT
+// ─────────────────────────────────────────
+const UNIT_OPTIONS = ['Sack','Box','Crate','Tray','Kg','Karton'];
+const MOVEMENT_OPTIONS = [
+  { value: 'inbound',  label: 'Inbound' },
+  { value: 'outbound', label: 'Outbound' }
+];
+let rows = [];
+let rowId = 0;
+
+function emptyRow() {
+  return { id: rowId++, movement:'inbound', stall:'', commodity:'', qty:'', unit:'', stock:'', inbound:'', outbound:'', origin:'', destination:'', price:'', remarks:'' };
+}
+
+function hasQty(v) {
+  return String(v ?? '').trim() !== '';
+}
+
+function makeMovementRow(r = {}, movement = 'inbound', stock = '') {
+  return {
+    id: rowId++,
+    movement,
+    stall: r.stall || '',
+    commodity: r.commodity || '',
+    qty: r.qty || '',
+    unit: r.unit || '',
+    stock: stock || '',
+    inbound: movement === 'inbound' ? (stock || '') : '',
+    outbound: movement === 'outbound' ? (stock || '') : '',
+    origin: r.origin || '',
+    destination: r.destination || '',
+    price: r.price || '',
+    remarks: r.remarks || ''
+  };
+}
+
+function normalizeMovement(movement) {
+  return movement === 'outbound' ? 'outbound' : 'inbound';
+}
+
+function movementLabel(movement) {
+  return movement === 'outbound' ? 'Outbound' : 'Inbound';
+}
+
+// ─────────────────────────────────────────
+//  SESSION-LEVEL ENTRY FIELDS (Entry Type, Stall No., Origin, Destination)
+//  entered once per session, applied to every row on save
+// ─────────────────────────────────────────
+function populateEntryTypeSelect() {
+  const sel = document.getElementById('entry-type');
+  if (!sel) return;
+  sel.innerHTML = MOVEMENT_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+}
+
+function getSessionEntryFields() {
+  return {
+    movement:    normalizeMovement(document.getElementById('entry-type')?.value),
+    stall:       document.getElementById('entry-stall')?.value || '',
+    origin:      document.getElementById('entry-origin')?.value || '',
+    destination: document.getElementById('entry-destination')?.value || ''
+  };
+}
+
+function setSessionEntryFields(f = {}) {
+  if (document.getElementById('entry-type'))        document.getElementById('entry-type').value        = normalizeMovement(f.movement);
+  if (document.getElementById('entry-stall'))        document.getElementById('entry-stall').value       = f.stall || '';
+  if (document.getElementById('entry-origin'))       document.getElementById('entry-origin').value      = f.origin || '';
+  if (document.getElementById('entry-destination'))  document.getElementById('entry-destination').value = f.destination || '';
+}
+
+function normalizeRowForReport(r = {}) {
+  const movement = normalizeMovement(r.movement || (hasQty(r.outbound) && !hasQty(r.inbound) ? 'outbound' : 'inbound'));
+  const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+  return {
+    ...r,
+    movement,
+    stock,
+    inbound: movement === 'inbound' ? stock : (r.inbound || ''),
+    outbound: movement === 'outbound' ? stock : (r.outbound || '')
+  };
+}
+
+function splitSavedRows(savedRows = []) {
+  rowId = 0;
+  const converted = [];
+  savedRows.forEach(r => {
+    if (!r.movement && hasQty(r.inbound) && hasQty(r.outbound)) {
+      converted.push(makeMovementRow(r, 'inbound', r.inbound));
+      converted.push(makeMovementRow(r, 'outbound', r.outbound));
+    } else {
+      const movement = normalizeMovement(r.movement || (hasQty(r.outbound) && !hasQty(r.inbound) ? 'outbound' : 'inbound'));
+      const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+      converted.push(makeMovementRow(r, movement, stock));
+    }
+  });
+  return converted;
+}
+
+function init() {
+  populateEntryTypeSelect();
+  const now = new Date();
+  document.getElementById('entry-date').value = now.toISOString().slice(0,10);
+  document.getElementById('entry-time').value = now.toTimeString().slice(0,5);
+  document.getElementById('filter-week-start').value = now.toISOString().slice(0,10);
+  document.getElementById('filter-month').value = now.toISOString().slice(0,7);
+  document.getElementById('filter-year').value = now.getFullYear();
+  document.getElementById('sd-filter-week-start').value = now.toISOString().slice(0,10);
+  document.getElementById('sd-filter-month').value = now.toISOString().slice(0,7);
+  document.getElementById('sd-filter-year').value = now.getFullYear();
+  populateMarketSelect('');
+  document.getElementById('entry-encoder').value = getCurrentUser();
+
+  if (sessions.length) {
+    const last = sessions[sessions.length - 1];
+    document.getElementById('entry-date').value    = last.date   || '';
+    populateMarketSelect(last.market || '');
+    document.getElementById('entry-time').value    = last.time   || '';
+    setSessionEntryFields({
+      movement:    last.movement    ?? last.rows?.[0]?.movement,
+      stall:       last.stall       ?? last.rows?.[0]?.stall,
+      origin:      last.origin      ?? last.rows?.[0]?.origin,
+      destination: last.destination ?? last.rows?.[0]?.destination
+    });
+    rows = splitSavedRows(last.rows || []);
+  } else {
+    setSessionEntryFields({});
+  }
+  while (rows.length < 5) rows.push(emptyRow());
+  renderAll();
+}
+
+function addRow() {
+  rows.push(emptyRow());
+  renderAll();
+  // Scroll new card into view on mobile
+  const cards = document.querySelectorAll('.entry-card');
+  if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function deleteRow(id) {
+  if (rows.length <= 1) { rows = [emptyRow()]; }
+  else { rows = rows.filter(r => r.id !== id); }
+  renderAll();
+}
+
+function clearTable() {
+  if (!confirm('Clear all rows?')) return;
+  rows = []; rowId = 0;
+  for (let i = 0; i < 5; i++) rows.push(emptyRow());
+  renderAll();
+}
+
+// ─────────────────────────────────────────
+//  COLLECT CURRENT FIELD VALUES
+// ─────────────────────────────────────────
+function collectRows() {
+  const sessionFields = getSessionEntryFields();
+  return rows.map(r => {
+    const row = { id: r.id, ...sessionFields };
+    ['commodity','qty','unit','stock','price','remarks'].forEach(f => {
+      const elements = [...document.querySelectorAll(`[data-id="${r.id}"][data-field="${f}"]`)];
+      const visibleEl = elements.find(el => el.offsetParent !== null);
+      const el = visibleEl || elements[elements.length - 1];
+      row[f] = el ? el.value : r[f] || '';
+    });
+    row.inbound = row.movement === 'inbound' ? row.stock : '';
+    row.outbound = row.movement === 'outbound' ? row.stock : '';
+    return row;
+  });
+}
+
+function syncRowsFromDOM() { rows = collectRows(); }
+
+// ─────────────────────────────────────────
+//  RENDER — MOBILE CARDS
+// ─────────────────────────────────────────
+function renderMobileCards() {
+  const area  = document.getElementById('entryCards');
+  const addBtn = area.querySelector('.add-row-btn');
+  // Remove existing cards
+  area.querySelectorAll('.entry-card').forEach(c => c.remove());
+
+  rows.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'entry-card open';
+    card.dataset.id = r.id;
+
+    const title = r.commodity || '(empty)';
+    const unitOpts = UNIT_OPTIONS.map(u => `<option value="${u}"${r.unit===u?' selected':''}>${u}</option>`).join('');
+    const movement = normalizeMovement(r.movement);
+    const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+
+    card.innerHTML = `
+      <div class="entry-card-header" onclick="toggleCard(${r.id})">
+        <span class="entry-card-num">${i+1}</span>
+        <span class="entry-card-title" id="ctitle-${r.id}">${esc(title)}</span>
+        <div class="entry-card-actions">
+          <button class="del-btn" onclick="event.stopPropagation();deleteRow(${r.id})" title="Delete">✕</button>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="entry-card-body">
+        <div class="card-fields">
+          <div class="card-field full">
+            <label>Commodity</label>
+            <input type="text" data-id="${r.id}" data-field="commodity" value="${esc(r.commodity)}" placeholder="e.g. Rice, Onion…"
+              oninput="updateCardTitle(${r.id})" />
+          </div>
+          <div class="card-field">
+            <label>Quantity</label>
+            <input type="number" data-id="${r.id}" data-field="qty" value="${esc(r.qty)}" placeholder="0" min="0" />
+          </div>
+          <div class="card-field">
+            <label>Unit Type</label>
+            <div class="select-wrap">
+              <select data-id="${r.id}" data-field="unit">
+                <option value="">— Select —</option>
+                ${unitOpts}
+              </select>
+            </div>
+          </div>
+          <div class="card-field">
+            <label>Total Stock</label>
+            <input type="number" data-id="${r.id}" data-field="stock" value="${esc(stock)}" placeholder="0" min="0" />
+          </div>
+          <div class="card-field">
+            <label>Wholesale Price (PHP/KG)</label>
+            <input type="number" data-id="${r.id}" data-field="price" value="${esc(r.price)}" placeholder="0.00" min="0" step="0.01" />
+          </div>
+          <div class="card-field full">
+            <label>Remarks</label>
+            <input type="text" data-id="${r.id}" data-field="remarks" value="${esc(r.remarks)}" placeholder="Notes…" />
+          </div>
+        </div>
+      </div>
+    `;
+    area.insertBefore(card, addBtn);
+  });
+
+  document.getElementById('mobile-row-count').textContent = rows.length + ' row' + (rows.length !== 1 ? 's' : '');
+}
+
+function updateCardTitle(id) {
+  const card = document.querySelector(`.entry-card[data-id="${id}"]`);
+  if (!card) return;
+  const commodity = card.querySelector(`[data-field="commodity"]`)?.value || '(empty)';
+  const title = document.getElementById('ctitle-' + id);
+  if (title) title.textContent = commodity;
+}
+
+function toggleCard(id) {
+  const card = document.querySelector(`.entry-card[data-id="${id}"]`);
+  if (card) card.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────
+//  RENDER — DESKTOP TABLE
+// ─────────────────────────────────────────
+function renderDesktopTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  rows.forEach((r, i) => {
+    const unitOpts = UNIT_OPTIONS.map(u => `<option value="${u}"${r.unit===u?' selected':''}>${u}</option>`).join('');
+    const movement = normalizeMovement(r.movement);
+    const stock = r.stock || (movement === 'outbound' ? r.outbound : r.inbound) || '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-num">${i+1}</td>
+      <td><input type="text"   data-id="${r.id}" data-field="commodity"   value="${esc(r.commodity)}"   placeholder="e.g. Rice" style="min-width:130px;" /></td>
+      <td><input type="number" data-id="${r.id}" data-field="qty"         value="${esc(r.qty)}"         placeholder="0" min="0" /></td>
+      <td><select class="stock-table-select" data-id="${r.id}" data-field="unit"><option value="">—</option>${unitOpts}</select></td>
+      <td><input type="number" data-id="${r.id}" data-field="stock"       value="${esc(stock)}"        placeholder="0" min="0" /></td>
+      <td><input type="number" data-id="${r.id}" data-field="price"       value="${esc(r.price)}"      placeholder="0.00" min="0" step="0.01" /></td>
+      <td><input type="text"   data-id="${r.id}" data-field="remarks"     value="${esc(r.remarks)}"    placeholder="Notes…" style="min-width:110px;" /></td>
+      <td class="action-cell"><button class="del-btn" onclick="syncRowsFromDOM();deleteRow(${r.id})" title="Delete">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('row-count').textContent = rows.length;
+
+  // Show table hint on desktop
+  const hint = document.getElementById('tableHint');
+  if (hint) hint.style.display = 'block';
+
+  // Add button row for desktop
+  const addTr = document.createElement('tr');
+  addTr.innerHTML = `<td colspan="8" style="padding:0;">
+    <button onclick="syncRowsFromDOM();addRow()" style="width:100%;padding:10px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--green-mid);display:flex;align-items:center;justify-content:center;gap:6px;">＋ Add Row</button>
+  </td>`;
+  tbody.appendChild(addTr);
+}
+
+function renderAll() {
+  renderMobileCards();
+  renderDesktopTable();
+}
+
+function esc(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function buildSessionFromCurrentRows() {
+  syncRowsFromDOM();
+  return {
+    date:    document.getElementById('entry-date').value,
+    market:  document.getElementById('entry-market').value,
+    encoder: document.getElementById('entry-encoder').value,
+    time:    document.getElementById('entry-time').value,
+    ...getSessionEntryFields(),
+    rows:    collectRows()
+  };
+}
+
+function saveSessionLocally(session) {
+  const key = session.date + '||' + session.market;
+  const idx = sessions.findIndex(s => s.date+'||'+s.market === key);
+  if (idx >= 0) sessions[idx] = session; else sessions.push(session);
+  saveToStorage();
+}
+
+function showButtonSaved(btn, successText = '✅ Saved!') {
+  if (!btn) return;
+  const orig = btn.dataset.originalText || btn.innerHTML;
+  btn.innerHTML = successText;
+  btn.style.background = '#0F6E56';
+  setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; btn.disabled = false; delete btn.dataset.originalText; }, 2000);
+}
+
+function resetSaveButton(btn) {
+  if (!btn) return;
+  btn.disabled = false;
+  btn.innerHTML = btn.dataset.originalText || '💾 Save';
+  delete btn.dataset.originalText;
+}
+
+// ─────────────────────────────────────────
+//  SAVE SESSION
+// ─────────────────────────────────────────
+function saveSession(e) {
+  const session = buildSessionFromCurrentRows();
+  saveSessionLocally(session);
+  const btn = e?.currentTarget || document.querySelector('.save-session-btn');
+  showButtonSaved(btn);
+}
+
+// ─────────────────────────────────────────
+//  CSV EXPORT
+// ─────────────────────────────────────────
+function exportCSV() {
+  syncRowsFromDOM();
+  const r = collectRows();
+  const monitoredMarket = document.getElementById('entry-market').value || '';
+  const headers = ['#','Entry Type','Market Location Being Monitored','Stall No.','Commodity','Quantity','Unit','Total Stock','Place of Origin (Barangay)','Destination','Wholesale Price (PHP/KG)','Remarks'];
+  const lines = [headers.join(',')];
+  r.forEach((row,i) => lines.push([i+1,movementLabel(row.movement),`"${monitoredMarket}"`,row.stall,row.commodity,row.qty,row.unit,row.stock,row.origin,`"${row.destination}"`,row.price,`"${row.remarks}"`].join(',')));
+  download('stock_entry_' + (document.getElementById('entry-date').value||'export') + '.csv', lines.join('\n'));
+}
+
+function exportReportCSV() {
+  const tbody = document.getElementById('report-tbody');
+  if (!tbody.children.length) { alert('No data to export.'); return; }
+  const headers = ['#','Commodity','Market Location(s)','Entries','Total Inbound','Total Outbound','Net Balance','Avg Price (PHP/KG)','Status'];
+  const lines = [headers.join(',')];
+  [...tbody.querySelectorAll('tr')].forEach((tr,i) => {
+    const tds = [...tr.querySelectorAll('td')].map(td => `"${td.textContent.trim()}"`);
+    lines.push(tds.join(','));
+  });
+  download('stock_report_' + new Date().toISOString().slice(0,10) + '.csv', lines.join('\n'));
+}
+
+function download(filename, content) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF' + content);
+  a.download = filename;
+  a.click();
+}
+
+// ─────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────
+let currentPeriod = 'weekly';
+let charts = {};
+
+function setPeriod(p) {
+  currentPeriod = p;
+  ['weekly','monthly','annual'].forEach(id => {
+    document.getElementById('tab-'+id).classList.toggle('active', id===p);
+    document.getElementById('filter-'+id).style.display = id===p ? 'flex' : 'none';
+  });
+  renderDashboard();
+}
+
+function getFilteredRows() {
+  let all = [];
+  sessions.forEach(s => {
+    (s.rows||[]).forEach(r => {
+      const row = normalizeRowForReport(r);
+      if (row.commodity || row.inbound || row.outbound || row.stock)
+        all.push({...row, _date: s.date, _market: s.market});
+    });
+  });
+  if (currentPeriod === 'weekly') {
+    const ws = document.getElementById('filter-week-start').value;
+    if (!ws) return all;
+    const start = new Date(ws), end = new Date(ws);
+    end.setDate(end.getDate()+6);
+    return all.filter(r => { const d=new Date(r._date); return d>=start && d<=end; });
+  } else if (currentPeriod === 'monthly') {
+    const m = document.getElementById('filter-month').value;
+    if (!m) return all;
+    return all.filter(r => r._date?.startsWith(m));
+  } else {
+    const y = document.getElementById('filter-year').value;
+    if (!y) return all;
+    return all.filter(r => r._date?.startsWith(y));
+  }
+}
+
+function renderDashboard() {
+  const data = getFilteredRows();
+  const totalIn  = data.reduce((s,r) => s+(+r.inbound ||0),0);
+  const totalOut = data.reduce((s,r) => s+(+r.outbound||0),0);
+  const prices   = data.map(r=>+r.price).filter(p=>p>0);
+  const avgPrice = prices.length ? prices.reduce((a,b)=>a+b,0)/prices.length : 0;
+  const comms    = [...new Set(data.map(r=>r.commodity).filter(Boolean))];
+
+  document.getElementById('kpi-entries').textContent     = data.length;
+  document.getElementById('kpi-inbound').textContent     = totalIn.toLocaleString();
+  document.getElementById('kpi-outbound').textContent    = totalOut.toLocaleString();
+  document.getElementById('kpi-balance').textContent     = (totalIn-totalOut).toLocaleString();
+  document.getElementById('kpi-avgprice').textContent    = '₱'+avgPrice.toFixed(2);
+  document.getElementById('kpi-commodities').textContent = comms.length;
+
+  const byComm = {};
+  data.forEach(r => {
+    const c = r.commodity||'(unknown)';
+    if (!byComm[c]) byComm[c] = {entries:0,inbound:0,outbound:0,prices:[],origins:new Set(),markets:new Set()};
+    byComm[c].entries++;
+    byComm[c].inbound  += +r.inbound ||0;
+    byComm[c].outbound += +r.outbound||0;
+    if (+r.price) byComm[c].prices.push(+r.price);
+    if (r.origin) byComm[c].origins.add(r.origin);
+    if (r._market) byComm[c].markets.add(r._market);
+  });
+
+  const labels   = Object.keys(byComm);
+  const inArr    = labels.map(c=>byComm[c].inbound);
+  const outArr   = labels.map(c=>byComm[c].outbound);
+  const priceArr = labels.map(c=>byComm[c].prices.length?byComm[c].prices.reduce((a,b)=>a+b,0)/byComm[c].prices.length:0);
+
+  renderBarChart('chart-inout', labels, inArr, outArr);
+  renderPriceChart('chart-price', labels, priceArr);
+  renderTrendChart('chart-trend', data);
+
+  const tbody = document.getElementById('report-tbody');
+  const empty = document.getElementById('report-empty');
+  tbody.innerHTML = '';
+
+  if (!labels.length) {
+    empty.style.display = 'block';
+    ['rft-entries','rft-inbound','rft-outbound','rft-balance'].forEach(id=>document.getElementById(id).textContent='0');
+    document.getElementById('rft-avgprice').textContent='—';
+    return;
+  }
+  empty.style.display = 'none';
+
+  labels.forEach((c,i) => {
+    const d  = byComm[c];
+    const ap = d.prices.length ? (d.prices.reduce((a,b)=>a+b,0)/d.prices.length).toFixed(2) : '—';
+    const net= d.inbound - d.outbound;
+    const status = net>0 ? '<span class="badge badge-green">Surplus</span>'
+                 : net<0 ? '<span class="badge badge-orange">Deficit</span>'
+                 : '<span class="badge" style="background:var(--gray-100);color:var(--gray-600)">Even</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono">${i+1}</td>
+      <td><strong>${c}</strong></td>
+      <td>${[...d.markets].join(', ') || '—'}</td>
+      <td class="mono">${d.entries}</td>
+      <td class="mono">${d.inbound.toLocaleString()}</td>
+      <td class="mono">${d.outbound.toLocaleString()}</td>
+      <td class="mono" style="color:${net>=0?'var(--green-mid)':'var(--danger)'}">${net.toLocaleString()}</td>
+      <td class="mono">${ap!=='—'?'₱'+ap:'—'}</td>
+      <td>${status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('rft-entries').textContent  = data.length;
+  document.getElementById('rft-inbound').textContent  = totalIn.toLocaleString();
+  document.getElementById('rft-outbound').textContent = totalOut.toLocaleString();
+  document.getElementById('rft-balance').textContent  = (totalIn-totalOut).toLocaleString();
+  document.getElementById('rft-avgprice').textContent = '₱'+avgPrice.toFixed(2);
+}
+
+
+// ─────────────────────────────────────────
+//  SUPPLY & DEMAND DASHBOARD
+// ─────────────────────────────────────────
+let currentSupplyPeriod = 'weekly';
+
+function setSupplyPeriod(p) {
+  currentSupplyPeriod = p;
+  ['weekly','monthly','annual'].forEach(id => {
+    document.getElementById('sd-tab-'+id).classList.toggle('active', id===p);
+    document.getElementById('sd-filter-'+id).style.display = id===p ? 'flex' : 'none';
+  });
+  renderSupplyDemandDashboard();
+}
+
+function getSupplyDemandFilteredRows() {
+  let all = [];
+  sessions.forEach(s => {
+    (s.rows||[]).forEach(r => {
+      const row = normalizeRowForReport(r);
+      if (row.commodity || row.inbound || row.outbound || row.stock) {
+        all.push({...row, _date: s.date, _market: s.market});
+      }
+    });
+  });
+
+  if (currentSupplyPeriod === 'weekly') {
+    const ws = document.getElementById('sd-filter-week-start').value;
+    if (!ws) return all;
+    const start = new Date(ws), end = new Date(ws);
+    end.setDate(end.getDate()+6);
+    return all.filter(r => { const d=new Date(r._date); return d>=start && d<=end; });
+  } else if (currentSupplyPeriod === 'monthly') {
+    const m = document.getElementById('sd-filter-month').value;
+    if (!m) return all;
+    return all.filter(r => r._date?.startsWith(m));
+  } else {
+    const y = document.getElementById('sd-filter-year').value;
+    if (!y) return all;
+    return all.filter(r => r._date?.startsWith(y));
+  }
+}
+
+function buildSupplyDemandSummary(data) {
+  const byComm = {};
+  data.forEach(r => {
+    const c = r.commodity || '(unknown)';
+    if (!byComm[c]) byComm[c] = {entries:0, supply:0, demand:0, markets:new Set()};
+    byComm[c].entries++;
+    byComm[c].supply += +r.inbound || 0;
+    byComm[c].demand += +r.outbound || 0;
+    if (r._market) byComm[c].markets.add(r._market);
+  });
+  return byComm;
+}
+
+function renderSupplyDemandDashboard() {
+  const data = getSupplyDemandFilteredRows();
+  const byComm = buildSupplyDemandSummary(data);
+  const labels = Object.keys(byComm);
+
+  const totalSupply = labels.reduce((s,c) => s + byComm[c].supply, 0);
+  const totalDemand = labels.reduce((s,c) => s + byComm[c].demand, 0);
+  const totalGap = totalSupply - totalDemand;
+  const rate = totalDemand > 0 ? (totalSupply / totalDemand) * 100 : (totalSupply > 0 ? 100 : 0);
+  const surplusCount = labels.filter(c => byComm[c].supply - byComm[c].demand > 0).length;
+  const deficitCount = labels.filter(c => byComm[c].supply - byComm[c].demand < 0).length;
+
+  document.getElementById('sd-kpi-supply').textContent = totalSupply.toLocaleString();
+  document.getElementById('sd-kpi-demand').textContent = totalDemand.toLocaleString();
+  document.getElementById('sd-kpi-gap').textContent = totalGap.toLocaleString();
+  document.getElementById('sd-kpi-rate').textContent = rate.toFixed(1) + '%';
+  document.getElementById('sd-kpi-surplus').textContent = surplusCount;
+  document.getElementById('sd-kpi-deficit').textContent = deficitCount;
+
+  const supplyArr = labels.map(c => byComm[c].supply);
+  const demandArr = labels.map(c => byComm[c].demand);
+  const gapArr = labels.map(c => byComm[c].supply - byComm[c].demand);
+
+  renderSupplyDemandBarChart('chart-sd-inout', labels, supplyArr, demandArr);
+  renderSupplyDemandGapChart('chart-sd-gap', labels, gapArr);
+  renderSupplyDemandTrendChart('chart-sd-trend', data);
+
+  const tbody = document.getElementById('sd-report-tbody');
+  const empty = document.getElementById('sd-report-empty');
+  tbody.innerHTML = '';
+
+  if (!labels.length) {
+    empty.style.display = 'block';
+    ['sd-rft-supply','sd-rft-demand','sd-rft-gap'].forEach(id => document.getElementById(id).textContent = '0');
+    document.getElementById('sd-rft-rate').textContent = '0%';
+    return;
+  }
+  empty.style.display = 'none';
+
+  labels
+    .sort((a,b) => Math.abs((byComm[b].supply - byComm[b].demand)) - Math.abs((byComm[a].supply - byComm[a].demand)))
+    .forEach((c,i) => {
+      const d = byComm[c];
+      const gap = d.supply - d.demand;
+      const itemRate = d.demand > 0 ? (d.supply / d.demand) * 100 : (d.supply > 0 ? 100 : 0);
+      const status = gap>0 ? '<span class="badge badge-green">Surplus</span>'
+                   : gap<0 ? '<span class="badge badge-orange">Deficit</span>'
+                   : '<span class="badge" style="background:var(--gray-100);color:var(--gray-600)">Balanced</span>';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mono">${i+1}</td>
+        <td><strong>${esc(c)}</strong></td>
+        <td>${esc([...d.markets].join(', ') || '—')}</td>
+        <td class="mono">${d.supply.toLocaleString()}</td>
+        <td class="mono">${d.demand.toLocaleString()}</td>
+        <td class="mono" style="color:${gap>=0?'var(--green-mid)':'var(--danger)'}">${gap.toLocaleString()}</td>
+        <td class="mono">${itemRate.toFixed(1)}%</td>
+        <td>${status}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  document.getElementById('sd-rft-supply').textContent = totalSupply.toLocaleString();
+  document.getElementById('sd-rft-demand').textContent = totalDemand.toLocaleString();
+  document.getElementById('sd-rft-gap').textContent = totalGap.toLocaleString();
+  document.getElementById('sd-rft-rate').textContent = rate.toFixed(1) + '%';
+}
+
+function exportSupplyDemandCSV() {
+  const tbody = document.getElementById('sd-report-tbody');
+  if (!tbody.children.length) { alert('No supply and demand data to export.'); return; }
+  const headers = ['#','Commodity','Market Location(s)','Supply','Demand','Gap','Fulfillment','Status'];
+  const lines = [headers.join(',')];
+  [...tbody.querySelectorAll('tr')].forEach(tr => {
+    const tds = [...tr.querySelectorAll('td')].map(td => `"${td.textContent.trim()}"`);
+    lines.push(tds.join(','));
+  });
+  download('supply_demand_report_' + new Date().toISOString().slice(0,10) + '.csv', lines.join('\n'));
+}
+
+function renderSupplyDemandBarChart(id, labels, supplyArr, demandArr) {
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label:'Supply (Inbound)', data:supplyArr, backgroundColor:'#1D9E75cc', borderColor:'#0F6E56', borderWidth:1.5, borderRadius:4 },
+      { label:'Demand (Outbound)', data:demandArr, backgroundColor:'#BA7517cc', borderColor:'#8a5710', borderWidth:1.5, borderRadius:4 }
+    ]},
+    options: { ...chartDefaults, plugins:{ ...chartDefaults.plugins, legend:{ ...chartDefaults.plugins.legend, position:'top' } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10} } } } }
+  });
+}
+
+function renderSupplyDemandGapChart(id, labels, gapArr) {
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{
+      label:'Supply Gap',
+      data:gapArr,
+      backgroundColor: gapArr.map(v => v >= 0 ? '#1D9E75cc' : '#A32D2Dcc'),
+      borderColor: gapArr.map(v => v >= 0 ? '#0F6E56' : '#7a2020'),
+      borderWidth:1.5,
+      borderRadius:4
+    }]},
+    options: { ...chartDefaults, plugins:{ legend:{display:false} }, scales:{ y:{ ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10} } } } }
+  });
+}
+
+function renderSupplyDemandTrendChart(id, data) {
+  destroyChart(id);
+  const byDate = {};
+  data.forEach(r => {
+    const d = r._date || 'Unknown';
+    if (!byDate[d]) byDate[d] = {supply:0,demand:0};
+    byDate[d].supply += +r.inbound || 0;
+    byDate[d].demand += +r.outbound || 0;
+  });
+  const dates = Object.keys(byDate).sort();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: { labels: dates, datasets: [
+      { label:'Supply', data:dates.map(d=>byDate[d].supply), borderColor:'#1D9E75', backgroundColor:'#1D9E7522', tension:.3, fill:true, pointRadius:3 },
+      { label:'Demand', data:dates.map(d=>byDate[d].demand), borderColor:'#BA7517', backgroundColor:'#BA751722', tension:.3, fill:true, pointRadius:3 }
+    ]},
+    options: { ...chartDefaults, plugins:{ ...chartDefaults.plugins, legend:{ position:'top', labels:{ font:{family:'Inter',size:11}, boxWidth:12 } } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10}, maxRotation:45 } } } }
+  });
+}
+
+// ─────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: { legend: { labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12 } } },
+  scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { font: { size: 10 } } } }
+};
+
+function renderBarChart(id, labels, inArr, outArr) {
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label:'Inbound',  data:inArr,  backgroundColor:'#1D9E75cc', borderColor:'#0F6E56', borderWidth:1.5, borderRadius:4 },
+      { label:'Outbound', data:outArr, backgroundColor:'#BA7517cc', borderColor:'#8a5710', borderWidth:1.5, borderRadius:4 }
+    ]},
+    options: { ...chartDefaults, plugins:{ ...chartDefaults.plugins, legend:{ ...chartDefaults.plugins.legend, position:'top' } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10} } } } }
+  });
+}
+
+function renderPriceChart(id, labels, priceArr) {
+  destroyChart(id);
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Avg Price (₱/KG)', data:priceArr, backgroundColor:'#1a5799cc', borderColor:'#0B2545', borderWidth:1.5, borderRadius:4 }] },
+    options: { ...chartDefaults, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>'₱'+v, font:{size:10} } }, x:{ ticks:{ font:{size:10} } } } }
+  });
+}
+
+function renderTrendChart(id, data) {
+  destroyChart(id);
+  const byDate = {};
+  data.forEach(r => {
+    const d = r._date||'Unknown';
+    if (!byDate[d]) byDate[d] = {in:0,out:0};
+    byDate[d].in  += +r.inbound ||0;
+    byDate[d].out += +r.outbound||0;
+  });
+  const dates = Object.keys(byDate).sort();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: { labels: dates, datasets: [
+      { label:'Inbound',  data:dates.map(d=>byDate[d].in),  borderColor:'#1D9E75', backgroundColor:'#1D9E7522', tension:.3, fill:true, pointRadius:3 },
+      { label:'Outbound', data:dates.map(d=>byDate[d].out), borderColor:'#BA7517', backgroundColor:'#BA751722', tension:.3, fill:true, pointRadius:3 }
+    ]},
+    options: { ...chartDefaults, plugins:{ ...chartDefaults.plugins, legend:{ position:'top', labels:{ font:{family:'Inter',size:11}, boxWidth:12 } } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} } }, x:{ ticks:{ font:{size:10}, maxRotation:45 } } } }
+  });
+}
+
+// ─────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  checkAppAuth();
+});
+</script>
+</body>
+</html>
